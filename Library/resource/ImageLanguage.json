@@ -1,0 +1,154 @@
+[
+  {
+    "Id": "ar-SA",
+    "DisplayName": "Arabic"
+  },
+  {
+    "Id": "pt-BR",
+    "DisplayName": "Brazilian Portuguese"
+  },
+  {
+    "Id": "bg-BG",
+    "DisplayName": "Bulgarian"
+  },
+  {
+    "Id": "zh-Hans-CN",
+    "DisplayName": "Chinese Simplified"
+  },
+  {
+    "Id": "zh-Hant-CN",
+    "DisplayName": "Chinese Traditional"
+  },
+  {
+    "Id": "hr-HR",
+    "DisplayName": "Croatian"
+  },
+  {
+    "Id": "cs-CZ",
+    "DisplayName": "Czech"
+  },
+  {
+    "Id": "da-DK",
+    "DisplayName": "Danish"
+  },
+  {
+    "Id": "nl-NL",
+    "DisplayName": "Dutch"
+  },
+  {
+    "Id": "en-US",
+    "DisplayName": "English"
+  },
+  {
+    "Id": "en-GB",
+    "DisplayName": "English International"
+  },
+  {
+    "Id": "et-EE",
+    "DisplayName": "Estonian"
+  },
+  {
+    "Id": "fi-FI",
+    "DisplayName": "Finnish"
+  },
+  {
+    "Id": "fr-FR",
+    "DisplayName": "French"
+  },
+  {
+    "Id": "fr-CA",
+    "DisplayName": "French Canadian"
+  },
+  {
+    "Id": "de-DE",
+    "DisplayName": "German"
+  },
+  {
+    "Id": "el-GR",
+    "DisplayName": "Greek"
+  },
+  {
+    "Id": "he-IL",
+    "DisplayName": "Hebrew"
+  },
+  {
+    "Id": "hu-HU",
+    "DisplayName": "Hungarian"
+  },
+  {
+    "Id": "it-IT",
+    "DisplayName": "Italian"
+  },
+  {
+    "Id": "ja-JP",
+    "DisplayName": "Japanese"
+  },
+  {
+    "Id": "ko-KR",
+    "DisplayName": "Korean"
+  },
+  {
+    "Id": "lv-LV",
+    "DisplayName": "Latvian"
+  },
+  {
+    "Id": "lt-LT",
+    "DisplayName": "Lithuanian"
+  },
+  {
+    "Id": "nb-NO",
+    "DisplayName": "Norwegian"
+  },
+  {
+    "Id": "pl-PL",
+    "DisplayName": "Polish"
+  },
+  {
+    "Id": "pt-PT",
+    "DisplayName": "Portuguese"
+  },
+  {
+    "Id": "ro-RO",
+    "DisplayName": "Romanian"
+  },
+  {
+    "Id": "ru-RU",
+    "DisplayName": "Russian"
+  },
+  {
+    "Id": "sr-Latn-RS",
+    "DisplayName": "Serbian Latin"
+  },
+  {
+    "Id": "sk-SK",
+    "DisplayName": "Slovak"
+  },
+  {
+    "Id": "sl-SI",
+    "DisplayName": "Slovenian"
+  },
+  {
+    "Id": "es-ES",
+    "DisplayName": "Spanish"
+  },
+  {
+    "Id": "es-MX",
+    "DisplayName": "Spanish (Mexico)"
+  },
+  {
+    "Id": "sv-SE",
+    "DisplayName": "Swedish"
+  },
+  {
+    "Id": "th-TH",
+    "DisplayName": "Thai"
+  },
+  {
+    "Id": "tr-TR",
+    "DisplayName": "Turkish"
+  },
+  {
+    "Id": "uk-UA",
+    "DisplayName": "Ukrainian"
+  }
+]
