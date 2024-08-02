@@ -4,6 +4,7 @@ using Schneegans.Unattend;
 using System.IO;
 using System.Text;
 using System.Collections.Immutable;
+using System.Reflection;
 
 namespace UnattendGen
 {
@@ -18,7 +19,7 @@ namespace UnattendGen
              * 
              */
 
-            Console.WriteLine("Unattended Answer File Generator");
+            Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine("Program: (c) 2024. CodingWonders Software\nLibrary: (c) 2024. Christoph Schneegans");
             Console.WriteLine("-------------------------------------------------");
