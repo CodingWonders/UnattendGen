@@ -38,6 +38,7 @@ namespace UnattendGen
             generator.randomComputerName = true;
             generator.timeZoneImplicit = false;
             generator.accountsInteractive = false;
+            generator.partitionsInteractive = false;
             await generator.GenerateAnswerFile(filePath);
         }
     }
@@ -51,6 +52,8 @@ namespace UnattendGen
         public bool timeZoneImplicit;
 
         public bool accountsInteractive;
+
+        public bool partitionsInteractive;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -109,6 +112,9 @@ namespace UnattendGen
                         autoLogonSettings: new BuiltinAutoLogonSettings(
                             password: account1.Password),
                         obscurePasswords: true),
+                    PartitionSettings = partitionsInteractive ? new InteractivePartitionSettings() : new UnattendedPartitionSettings(
+                        PartitionLayout: PartitionLayout.GPT,
+                        RecoveryMode: RecoveryMode.Partition),                          // PLEASE MODIFY THIS!!!
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
                         name: "WIN-NHV7230VJNS"),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
