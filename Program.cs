@@ -35,6 +35,8 @@ namespace UnattendGen
             string filePath = "unattend.xml";
             var generator = new AnswerFileGenerator();
             generator.regionalInteractive = false;
+            generator.randomComputerName = true;
+            generator.timeZoneImplicit = false;
             generator.accountsInteractive = false;
             await generator.GenerateAnswerFile(filePath);
         }
@@ -43,6 +45,10 @@ namespace UnattendGen
     public class AnswerFileGenerator
     {
         public bool regionalInteractive;
+
+        public bool randomComputerName;
+
+        public bool timeZoneImplicit;
 
         public bool accountsInteractive;
 
@@ -54,6 +60,8 @@ namespace UnattendGen
              * - If user decides to configure something interactively, DO NOT add setting
              * 
              */
+
+            TimeOffset offset = new TimeOffset("W. Europe Standard Time", "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna");
 
             Account account1 = new Account(
                 name: "Homer",
@@ -101,8 +109,10 @@ namespace UnattendGen
                         autoLogonSettings: new BuiltinAutoLogonSettings(
                             password: account1.Password),
                         obscurePasswords: true),
-                    ComputerNameSettings = new CustomComputerNameSettings(
-                        name: "WIN-NHV7230VJNS")
+                    ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
+                        name: "WIN-NHV7230VJNS"),
+                    TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
+                        TimeZone: offset)
                 }
                 );
             try
