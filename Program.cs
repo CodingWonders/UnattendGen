@@ -10,6 +10,19 @@ namespace UnattendGen
 {
     internal class Program
     {
+
+        static string GetCopyrightTimespan(int start, int current)
+        {
+            if (current == start)
+            {
+                return current.ToString();
+            }
+            else
+            {
+                return $"{start.ToString()} - {current.ToString()}";
+            }
+        }
+
         static void Main(string[] args)
         {
             // follow example for now, document settings for later DT integration
@@ -21,7 +34,7 @@ namespace UnattendGen
 
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
-            Console.WriteLine("Program: (c) 2024. CodingWonders Software\nLibrary: (c) 2024. Christoph Schneegans");
+            Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine("SEE ATTACHED PROGRAM LICENSES FOR MORE INFORMATION REGARDING USE AND REDISTRIBUTION\n\n");
 

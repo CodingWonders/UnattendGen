@@ -32,4 +32,8 @@
     <ProjectReference Include="Library\UnattendGenerator.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="COPY &quot;$(SolutionDir)LICENSE.txt&quot; &quot;$(TargetDir)LICENSE.txt&quot;&#xD;&#xA;COPY &quot;$(SolutionDir)Library\LICENSE.txt&quot; &quot;$(TargetDir)Library-License.txt&quot;" />
+  </Target>
+
 </Project>
