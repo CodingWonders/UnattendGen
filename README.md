@@ -1,4 +1,4 @@
-# UnattendGen
+![Banner](./res/banner.png)
 
 **UnattendGen** is a console application that generates unattended answer files given certain parameters.
 
