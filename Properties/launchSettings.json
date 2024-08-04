@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "UnattendGen": {
+      "commandName": "Project",
+      "commandLineArgs": "/regionfile=regionTest.xml"
+    }
+  }
+}

@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Immutable;
 using System.Reflection;
+using UnattendGen.UserSettings;
 
 namespace UnattendGen
 {
@@ -23,29 +24,72 @@ namespace UnattendGen
             }
         }
 
+        static void ConfigureDefaultOptions()
+        {
+
+        }
+
         static async Task Main(string[] args)
         {
+
+            string targetPath = "";
+            string regionFile = "";
+            RegionFile region = new RegionFile();
+            RegionFile defaultRegion = new RegionFile();
+            defaultRegion.regionLang.Add(new ImageLanguages("en-US", "English (United States)"));
+            defaultRegion.regionLocales.Add(new UserLocales("en-US", "English (United States)", "0409", "00000409", "244"));
+            defaultRegion.regionKeys.Add(new KeyboardIdentifiers("00000409", "US", "Keyboard"));
+            defaultRegion.regionGeo.Add(new GeoIds("244", "United States"));
+            defaultRegion.regionTimes.Add(new TimeOffsets("UTC", "(UTC) Coordinated Universal Time"));
+
+            region = defaultRegion;
 
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
             Console.WriteLine("-------------------------------------------------");
-            Console.WriteLine("SEE ATTACHED PROGRAM LICENSES FOR MORE INFORMATION REGARDING USE AND REDISTRIBUTION\n\n");
+            Console.WriteLine("SEE ATTACHED PROGRAM LICENSES FOR MORE INFORMATION REGARDING USE AND REDISTRIBUTION\n");
 
-            string filePath = "unattend.xml";
             var generator = new AnswerFileGenerator();
-            generator.regionalInteractive = false;
+
+            if (Environment.GetCommandLineArgs().Length >= 2)
+            {
+                Console.WriteLine("Parsing command-line switches...\n");
+                foreach (string cmdLine in Environment.GetCommandLineArgs())
+                {
+                    if (cmdLine.StartsWith("/target", StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetPath = cmdLine.Replace("/target=", "").Trim();
+                    }
+                    else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
+                    {
+                        regionFile = cmdLine.Replace("/regionfile=", "").Trim();
+                        if (regionFile != "" && File.Exists(regionFile))
+                        {
+                            region.regionLang = ImageLanguages.LoadItems(regionFile);
+                            region.regionGeo = GeoIds.LoadItems(regionFile);
+                            region.regionLocales = UserLocales.LoadItems(regionFile);
+                            region.regionKeys = KeyboardIdentifiers.LoadItems(regionFile);
+                            region.regionTimes = TimeOffsets.LoadItems(regionFile);
+                        }
+                    }
+                }
+            }
+            //generator.regionalInteractive = false;
+            generator.regionalSettings = region;
             generator.randomComputerName = true;
-            generator.timeZoneImplicit = false;
+            //generator.timeZoneImplicit = false;
             generator.accountsInteractive = false;
             generator.partitionsInteractive = false;
-            await generator.GenerateAnswerFile(filePath);
+            await generator.GenerateAnswerFile(targetPath != "" ? targetPath : "unattend.xml");
         }
     }
 
     public class AnswerFileGenerator
     {
         public bool regionalInteractive;
+
+        public RegionFile regionalSettings = new RegionFile();
 
         public bool randomComputerName;
 
@@ -99,14 +143,14 @@ namespace UnattendGen
                 Configuration.Default with
                 {
                     LanguageSettings = regionalInteractive ? new InteractiveLanguageSettings() : new UnattendedLanguageSettings(
-                        ImageLanguage: generator.Lookup<ImageLanguage>("en-US"),        // Image language
+                        ImageLanguage: generator.Lookup<ImageLanguage>(regionalSettings.regionLang[0].Id),
                         LocaleAndKeyboard: new LocaleAndKeyboard(
-                            generator.Lookup<UserLocale>("en-US"),                      // User locale
-                            generator.Lookup<KeyboardIdentifier>("0000040a")            // Keyboard identifier. DO NOT PREPEND 0409 as it does that automatically
+                            generator.Lookup<UserLocale>(regionalSettings.regionLocales[0].Id),
+                            generator.Lookup<KeyboardIdentifier>(regionalSettings.regionKeys[0].Id)
                         ),
-                        LocaleAndKeyboard2: null,                                       // Set value to null as DT doesn't support additional layouts
-                        LocaleAndKeyboard3: null,                                       // -- same here
-                        GeoLocation: generator.Lookup<GeoLocation>("244")),             // Home Location
+                        LocaleAndKeyboard2: null,
+                        LocaleAndKeyboard3: null,
+                        GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
                     AccountSettings = accountsInteractive ? new InteractiveAccountSettings() : new UnattendedAccountSettings(
                         accounts: accounts,
                         autoLogonSettings: new BuiltinAutoLogonSettings(

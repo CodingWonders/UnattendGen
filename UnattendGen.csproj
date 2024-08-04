@@ -32,8 +32,12 @@
     <ProjectReference Include="Library\UnattendGenerator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Tests\" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="COPY &quot;$(SolutionDir)LICENSE.txt&quot; &quot;$(TargetDir)LICENSE.txt&quot;&#xD;&#xA;COPY &quot;$(SolutionDir)Library\LICENSE.txt&quot; &quot;$(TargetDir)Library-License.txt&quot;" />
+    <Exec Command="SET TestSettings=1&#xD;&#xA;&#xD;&#xA;COPY &quot;$(SolutionDir)LICENSE.txt&quot; &quot;$(TargetDir)LICENSE.txt&quot;&#xD;&#xA;COPY &quot;$(SolutionDir)Library\LICENSE.txt&quot; &quot;$(TargetDir)Library-License.txt&quot;&#xD;&#xA;&#xD;&#xA;IF %25TestSettings%25 equ 1 (COPY &quot;$(SolutionDir)Tests\*&quot; &quot;$(TargetDir)&quot;)" />
   </Target>
 
 </Project>

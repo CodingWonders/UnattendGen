@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<root>
+    <ImageLanguage Id="en-US" DisplayName="English"/>
+    <UserLocale Id="it-IT" DisplayName="Italian (Italy)" LCID="0410" KeyboardLayout="00000410" GeoLocation="118"/>
+    <KeyboardIdentifier Id="0000040a" DisplayName="Spanish" Type="Keyboard"/>
+    <GeoId Id="217" DisplayName="Spain"/>
+    <TimeOffset Id="W. Europe Standard Time" DisplayName="(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna"/>
+</root>
