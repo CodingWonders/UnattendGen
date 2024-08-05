@@ -66,6 +66,18 @@ namespace UnattendGen
                     {
                         regionInteractive = true;
                     }
+                    else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
+                    {
+                        regionFile = cmdLine.Replace("/regionfile=", "").Trim();
+                        if (regionFile != "" && File.Exists(regionFile))
+                        {
+                            region.regionLang = ImageLanguages.LoadItems(regionFile);
+                            region.regionGeo = GeoIds.LoadItems(regionFile);
+                            region.regionLocales = UserLocales.LoadItems(regionFile);
+                            region.regionKeys = KeyboardIdentifiers.LoadItems(regionFile);
+                            region.regionTimes = TimeOffsets.LoadItems(regionFile);
+                        }
+                    }
                     else if (cmdLine.StartsWith("/architecture", StringComparison.OrdinalIgnoreCase))
                     {
                         switch (cmdLine.Replace("/architecture=", "").Trim())
@@ -87,17 +99,14 @@ namespace UnattendGen
                                 break;
                         }
                     }
-                    else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("/LabConfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        regionFile = cmdLine.Replace("/regionfile=", "").Trim();
-                        if (regionFile != "" && File.Exists(regionFile))
-                        {
-                            region.regionLang = ImageLanguages.LoadItems(regionFile);
-                            region.regionGeo = GeoIds.LoadItems(regionFile);
-                            region.regionLocales = UserLocales.LoadItems(regionFile);
-                            region.regionKeys = KeyboardIdentifiers.LoadItems(regionFile);
-                            region.regionTimes = TimeOffsets.LoadItems(regionFile);
-                        }
+                        generator.SV_LabConfig = true;
+                    }
+                    else if (cmdLine.StartsWith("/BypassNRO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
+                        generator.SV_BypassNRO = true;
                     }
                 }
             }
@@ -120,6 +129,10 @@ namespace UnattendGen
         public bool randomComputerName;
 
         public Schneegans.Unattend.ProcessorArchitecture architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
+
+        public bool SV_LabConfig;
+
+        public bool SV_BypassNRO;
 
         public bool timeZoneImplicit;
 
@@ -187,7 +200,9 @@ namespace UnattendGen
                         name: "WIN-NHV7230VJNS"),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
                         TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
-                    ProcessorArchitectures = architectures
+                    ProcessorArchitectures = architectures,
+                    BypassRequirementsCheck = SV_LabConfig,
+                    BypassNetworkCheck = SV_BypassNRO
                 }
                 );
             try
