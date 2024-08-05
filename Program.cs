@@ -108,13 +108,6 @@ namespace UnattendGen
         {
             // follow example for now, document settings for later DT integration
 
-            /* NOTES:
-             * - If user decides to configure something interactively, DO NOT add setting
-             * 
-             */
-
-            TimeOffset offset = new TimeOffset("W. Europe Standard Time", "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna");
-
             Account account1 = new Account(
                 name: "Homer",
                 password: "Test_1234",
@@ -167,7 +160,7 @@ namespace UnattendGen
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
                         name: "WIN-NHV7230VJNS"),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
-                        TimeZone: offset)
+                        TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName))
                 }
                 );
             try
