@@ -6,6 +6,7 @@ using System.Text;
 using System.Collections.Immutable;
 using System.Reflection;
 using UnattendGen.UserSettings;
+using System.Diagnostics;
 
 namespace UnattendGen
 {
@@ -44,8 +45,14 @@ namespace UnattendGen
             return name;
         }
 
+        static void DebugWrite(string msg)
+        {
+            Console.WriteLine($"DEBUG: {msg}");
+        }
+
         static async Task Main(string[] args)
         {
+            bool debugMode = true;
 
             string targetPath = "";
             bool regionInteractive = false;
@@ -61,6 +68,8 @@ namespace UnattendGen
             region = defaultRegion;
 
             string computerName = "";
+
+            AnswerFileGenerator.PartitionSettingsMode partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
 
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
@@ -85,14 +94,27 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
                     {
+                        Console.WriteLine("INFO: Region file specified. Reading settings...");
                         regionFile = cmdLine.Replace("/regionfile=", "").Trim();
                         if (regionFile != "" && File.Exists(regionFile))
                         {
-                            region.regionLang = ImageLanguages.LoadItems(regionFile);
-                            region.regionGeo = GeoIds.LoadItems(regionFile);
-                            region.regionLocales = UserLocales.LoadItems(regionFile);
-                            region.regionKeys = KeyboardIdentifiers.LoadItems(regionFile);
-                            region.regionTimes = TimeOffsets.LoadItems(regionFile);
+                            try
+                            {
+                                region.regionLang = ImageLanguages.LoadItems(regionFile);
+                                region.regionGeo = GeoIds.LoadItems(regionFile);
+                                region.regionLocales = UserLocales.LoadItems(regionFile);
+                                region.regionKeys = KeyboardIdentifiers.LoadItems(regionFile);
+                                region.regionTimes = TimeOffsets.LoadItems(regionFile);
+                                DebugWrite($"Regional Settings:\n\n\t- Image Language: {region.regionLang[0].Id}\n\t- Locale: {region.regionLocales[0].Id}\n\t- Keyboard: {region.regionKeys[0].Id}\n\t- Geo ID: {region.regionGeo[0].Id}\n\t- Time Offset: {region.regionTimes[0].Id}\n");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("WARNING: Could not parse regional settings file. Continuing with default settings...");
+                                if (Debugger.IsAttached)
+                                    Debugger.Break();
+                                DebugWrite($"Error Message - {ex.Message}");
+                                region = defaultRegion;
+                            }
                         }
                     }
                     else if (cmdLine.StartsWith("/architecture", StringComparison.OrdinalIgnoreCase))
@@ -102,13 +124,16 @@ namespace UnattendGen
                             case "x86":
                             case "i386":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.x86;
+                                DebugWrite("Architecture: x86");
                                 break;
                             case "x64":
                             case "amd64":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
+                                DebugWrite("Architecture: amd64");
                                 break;
                             case "arm64":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.arm64;
+                                DebugWrite("Architecture: arm64");
                                 break;
                             default:
                                 Console.WriteLine($"WARNING: Unknown processor architecture: {cmdLine.Replace("/architecture=", "").Trim()}. Continuing with AMD64...");
@@ -118,10 +143,12 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("/LabConfig", StringComparison.OrdinalIgnoreCase))
                     {
+                        DebugWrite("LabConfig: True");
                         generator.SV_LabConfig = true;
                     }
                     else if (cmdLine.StartsWith("/BypassNRO", StringComparison.OrdinalIgnoreCase))
                     {
+                        DebugWrite("BypassNRO: True");
                         Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
                         generator.SV_BypassNRO = true;
                     }
@@ -133,23 +160,81 @@ namespace UnattendGen
                         if (name == "")
                             Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("/computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
 
+                        DebugWrite($"Computer name: {name}");
+
                         computerName = name;
                     }
+                    else if (cmdLine.StartsWith("/tzImplicit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DebugWrite("Time Zone is now implicit (determine from Regional Settings - See Respective Settings For More Info!!!)");
+                        generator.timeZoneImplicit = true;
+                    }
+                    else if (cmdLine.StartsWith("/partmode", StringComparison.OrdinalIgnoreCase))
+                    {
+                        switch (cmdLine.Replace("/partmode=", "").Trim())
+                        {
+                            case "interactive":
+                                partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
+                                break;
+                            case "unattended":
+                                Console.WriteLine("INFO: Selected partition mode is unattended. Reading settings...");
+                                partition = AnswerFileGenerator.PartitionSettingsMode.Unattended;
+                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "partSettings.xml")))
+                                {
+                                    try
+                                    {
+                                        DiskZeroSettings? diskZero = DiskZeroSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "partSettings.xml"));
+                                        generator.diskZeroSettings = diskZero;
+                                        
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("WARNING: Could not parse partition settings file. Continuing with Interactive...");
+                                        if (Debugger.IsAttached)
+                                            Debugger.Break();
+                                        DebugWrite($"Error Message - {ex.Message}");
+                                        partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("WARNING: Partition settings file does not exist. Continuing with Interactive...");
+                                    partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
+                                }
+                                break;
+                            case "custom":
+                                partition = AnswerFileGenerator.PartitionSettingsMode.Custom;
+                                break;
+                            default:
+                                Console.WriteLine($"WARNING: Unknown partition mode: {cmdLine.Replace("/partmode=", "").Trim()}. Continuing with Interactive...");
+                                partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
+                                break;
+                        }
+                    }
+                    if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
+                        DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
             }
             generator.regionalInteractive = regionInteractive;
             generator.regionalSettings = region;
             generator.randomComputerName = (computerName == "");
             generator.computerName = computerName;
-            //generator.timeZoneImplicit = false;
             generator.accountsInteractive = false;
-            generator.partitionsInteractive = false;
+            generator.partitionSettings = partition;
             await generator.GenerateAnswerFile(targetPath != "" ? targetPath : "unattend.xml");
         }
     }
 
     public class AnswerFileGenerator
     {
+
+        public enum PartitionSettingsMode
+        {
+            Interactive,
+            Unattended,
+            Custom
+        }
+
         public bool regionalInteractive;
 
         public RegionFile regionalSettings = new RegionFile();
@@ -166,9 +251,11 @@ namespace UnattendGen
 
         public bool timeZoneImplicit;
 
-        public bool accountsInteractive;
+        public PartitionSettingsMode partitionSettings;
 
-        public bool partitionsInteractive;
+        public DiskZeroSettings? diskZeroSettings;
+
+        public bool accountsInteractive;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -223,9 +310,27 @@ namespace UnattendGen
                         autoLogonSettings: new BuiltinAutoLogonSettings(
                             password: account1.Password),
                         obscurePasswords: true),
-                    PartitionSettings = partitionsInteractive ? new InteractivePartitionSettings() : new UnattendedPartitionSettings(
-                        PartitionLayout: PartitionLayout.GPT,
-                        RecoveryMode: RecoveryMode.Partition),                          // PLEASE MODIFY THIS!!!
+                    PartitionSettings = partitionSettings switch
+                    {
+                        PartitionSettingsMode.Interactive => new InteractivePartitionSettings(),
+                        PartitionSettingsMode.Unattended => new UnattendedPartitionSettings(
+                            PartitionLayout: diskZeroSettings.partStyle switch
+                            {
+                                DiskZeroSettings.PartitionStyle.GPT => PartitionLayout.GPT,
+                                DiskZeroSettings.PartitionStyle.MBR => PartitionLayout.MBR,
+                                _ => PartitionLayout.GPT
+                            },
+                            RecoveryMode: diskZeroSettings.recoveryEnvironment switch
+                            {
+                                DiskZeroSettings.RecoveryEnvironmentMode.None => RecoveryMode.None,
+                                DiskZeroSettings.RecoveryEnvironmentMode.Partition => RecoveryMode.Partition,
+                                DiskZeroSettings.RecoveryEnvironmentMode.Windows => RecoveryMode.Folder,
+                                _ => RecoveryMode.Partition
+                            },
+                            EspSize: diskZeroSettings.ESPSize,
+                            RecoverySize: diskZeroSettings.recEnvSize),
+                        _ => new InteractivePartitionSettings()
+                    },
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
                         name: computerName),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
