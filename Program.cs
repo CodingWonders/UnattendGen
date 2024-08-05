@@ -66,6 +66,27 @@ namespace UnattendGen
                     {
                         regionInteractive = true;
                     }
+                    else if (cmdLine.StartsWith("/architecture", StringComparison.OrdinalIgnoreCase))
+                    {
+                        switch (cmdLine.Replace("/architecture=", "").Trim())
+                        {
+                            case "x86":
+                            case "i386":
+                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.x86;
+                                break;
+                            case "x64":
+                            case "amd64":
+                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
+                                break;
+                            case "arm64":
+                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.arm64;
+                                break;
+                            default:
+                                Console.WriteLine($"WARNING: Unknown processor architecture: {cmdLine.Replace("/architecture=", "").Trim()}. Continuing with AMD64...");
+                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
+                                break;
+                        }
+                    }
                     else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
                     {
                         regionFile = cmdLine.Replace("/regionfile=", "").Trim();
@@ -97,6 +118,8 @@ namespace UnattendGen
         public RegionFile regionalSettings = new RegionFile();
 
         public bool randomComputerName;
+
+        public Schneegans.Unattend.ProcessorArchitecture architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
 
         public bool timeZoneImplicit;
 
@@ -134,7 +157,10 @@ namespace UnattendGen
                 group: "Users"
             );
             ImmutableList<Account> accounts = ImmutableList<Account>.Empty;
-            accounts = accounts.AddRange(new Account[] { account1, account2, account3, account4, account5 });
+            accounts = accounts.AddRange([account1, account2, account3, account4, account5]);
+
+            ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
+            architectures = architectures.Add(architecture);
 
             UnattendGenerator generator = new();
             XmlDocument xml = generator.GenerateXml(
@@ -160,7 +186,8 @@ namespace UnattendGen
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
                         name: "WIN-NHV7230VJNS"),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
-                        TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName))
+                        TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
+                    ProcessorArchitectures = architectures
                 }
                 );
             try
@@ -174,11 +201,11 @@ namespace UnattendGen
                     NewLineChars = "\r\n",
                 });
                 xml.Save(writer);
-                Console.WriteLine($"Unattended answer file has been generated at \"{targetPath}\"");
+                Console.WriteLine($"\nUnattended answer file has been generated at \"{targetPath}\"");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Could not generate unattended answer file due to the following error: {ex.Message}");
+                Console.WriteLine($"\nCould not generate unattended answer file due to the following error: {ex.Message}");
             }
         }
     }
