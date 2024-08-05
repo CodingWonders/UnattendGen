@@ -1,0 +1,4 @@
+<?xml version="1.0" ?>
+<root>
+    <DiskZero PartitionStyle="GPT" RecoveryEnvironment="WinRE" ESPSize="512" RESize="1024" />
+</root>

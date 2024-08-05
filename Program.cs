@@ -179,11 +179,11 @@ namespace UnattendGen
                             case "unattended":
                                 Console.WriteLine("INFO: Selected partition mode is unattended. Reading settings...");
                                 partition = AnswerFileGenerator.PartitionSettingsMode.Unattended;
-                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "partSettings.xml")))
+                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unattPartSettings.xml")))
                                 {
                                     try
                                     {
-                                        DiskZeroSettings? diskZero = DiskZeroSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "partSettings.xml"));
+                                        DiskZeroSettings? diskZero = DiskZeroSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unattPartSettings.xml"));
                                         generator.diskZeroSettings = diskZero;
                                         
                                     }
