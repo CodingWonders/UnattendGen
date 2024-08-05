@@ -33,6 +33,7 @@ namespace UnattendGen
         {
 
             string targetPath = "";
+            bool regionInteractive = false;
             string regionFile = "";
             RegionFile region = new RegionFile();
             RegionFile defaultRegion = new RegionFile();
@@ -61,6 +62,10 @@ namespace UnattendGen
                     {
                         targetPath = cmdLine.Replace("/target=", "").Trim();
                     }
+                    else if (cmdLine.StartsWith("/region-interactive", StringComparison.OrdinalIgnoreCase))
+                    {
+                        regionInteractive = true;
+                    }
                     else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
                     {
                         regionFile = cmdLine.Replace("/regionfile=", "").Trim();
@@ -75,7 +80,7 @@ namespace UnattendGen
                     }
                 }
             }
-            //generator.regionalInteractive = false;
+            generator.regionalInteractive = regionInteractive;
             generator.regionalSettings = region;
             generator.randomComputerName = true;
             //generator.timeZoneImplicit = false;
