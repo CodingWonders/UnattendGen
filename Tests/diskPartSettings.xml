@@ -1,0 +1,4 @@
+<?xml version="1.0" ?>
+<root>
+    <DiskPart ScriptFile="diskpart.dp" AutoInst="1" Disk="0" Partition="3" />
+</root>

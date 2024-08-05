@@ -71,6 +71,12 @@ namespace UnattendGen
 
             AnswerFileGenerator.PartitionSettingsMode partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
 
+            bool genericChosen = true;
+            SystemEdition defaultEdition = new SystemEdition();
+            defaultEdition.Id = "pro";
+            defaultEdition.DisplayName = "Pro";
+            defaultEdition.ProductKey = "VK7JG-NPHTM-C97JM-9MPGT-3V66T";
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -234,6 +240,41 @@ namespace UnattendGen
                                 break;
                         }
                     }
+                    else if (cmdLine.StartsWith("/generic", StringComparison.OrdinalIgnoreCase))
+                    {
+                        generator.genericEdition = defaultEdition;
+                        Console.WriteLine("INFO: The unattended answer file will use a generic product key. Reading edition configuration");
+                        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "edition.xml")))
+                        {
+                            try
+                            {
+                                SystemEdition edition = SystemEdition.LoadSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "edition.xml"));
+                                generator.genericEdition = edition;
+                                DebugWrite($"Edition settings:\n\n\t- Edition ID: {edition.Id}\n\t- Edition name: {edition.DisplayName}\n\t- Product key: {edition.ProductKey}\n");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("WARNING: Could not parse edition settings file. Continuing with default Pro edition...");
+                                if (Debugger.IsAttached)
+                                    Debugger.Break();
+                                DebugWrite($"Error Message - {ex.Message}");
+                                generator.genericEdition = defaultEdition;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("WARNING: Edition settings file does not exist. Continuing with default Pro edition...");
+                            generator.genericEdition = defaultEdition;
+                        }
+                    }
+                    else if (cmdLine.StartsWith("/customkey", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: The unattended answer file will not use a generic product key");
+                        genericChosen = false;
+                        string key = cmdLine.Replace("/customkey=", "").Trim();
+                        DebugWrite($"Edition settings:\n\n\t- Product key: {key}\n");
+                        generator.customKey = key;
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
@@ -244,6 +285,13 @@ namespace UnattendGen
             generator.computerName = computerName;
             generator.accountsInteractive = false;
             generator.partitionSettings = partition;
+            generator.editionGenericChosen = genericChosen;
+            if (generator.genericEdition is null)
+            {
+                Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
+                generator.genericEdition = defaultEdition;
+            }
+
             await generator.GenerateAnswerFile(targetPath != "" ? targetPath : "unattend.xml");
         }
     }
@@ -279,6 +327,12 @@ namespace UnattendGen
         public DiskZeroSettings? diskZeroSettings;
 
         public DiskPartSettings? diskPartSettings;
+
+        public bool editionGenericChosen;
+
+        public SystemEdition? genericEdition;
+
+        public string? customKey;
 
         public bool accountsInteractive;
 
@@ -365,6 +419,13 @@ namespace UnattendGen
                             }),
                         _ => new InteractivePartitionSettings()
                     },
+                    EditionSettings = editionGenericChosen ? new UnattendedEditionSettings(
+                        Edition: new WindowsEdition(
+                            id: genericEdition.Id,
+                            displayName: genericEdition.DisplayName,
+                            productKey: genericEdition.ProductKey,
+                            visible: true)) : new DirectEditionSettings(
+                                productKey: customKey),
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
                         name: computerName),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
