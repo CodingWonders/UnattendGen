@@ -24,9 +24,24 @@ namespace UnattendGen
             }
         }
 
-        static void ConfigureDefaultOptions()
+        static string ValidateComputerName(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return "";
 
+            if (name.Length > 15)
+                return "";
+
+            if (name.ToCharArray().Any(char.IsWhiteSpace))
+                return "";
+
+            if (name.ToCharArray().All(char.IsAsciiDigit))
+                return "";
+
+            if (name.IndexOfAny(['{', '|', '}', '~', '[', '\\', ']', '^', '\'', ':', ';', '<', '=', '>', '?', '@', '!', '"', '#', '$', '%', '`', '(', ')', '+', '/', '.', ',', '*', '&']) > -1)
+                return "";
+
+            return name;
         }
 
         static async Task Main(string[] args)
@@ -44,6 +59,8 @@ namespace UnattendGen
             defaultRegion.regionTimes.Add(new TimeOffsets("UTC", "(UTC) Coordinated Universal Time"));
 
             region = defaultRegion;
+
+            string computerName = "";
 
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
@@ -108,11 +125,22 @@ namespace UnattendGen
                         Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
                         generator.SV_BypassNRO = true;
                     }
+                    else if (cmdLine.StartsWith("/computername", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string name = cmdLine.Replace("/computername=", "").Trim();
+                        name = ValidateComputerName(name);
+
+                        if (name == "")
+                            Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("/computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
+
+                        computerName = name;
+                    }
                 }
             }
             generator.regionalInteractive = regionInteractive;
             generator.regionalSettings = region;
-            generator.randomComputerName = true;
+            generator.randomComputerName = (computerName == "");
+            generator.computerName = computerName;
             //generator.timeZoneImplicit = false;
             generator.accountsInteractive = false;
             generator.partitionsInteractive = false;
@@ -127,6 +155,8 @@ namespace UnattendGen
         public RegionFile regionalSettings = new RegionFile();
 
         public bool randomComputerName;
+
+        public string computerName = "";
 
         public Schneegans.Unattend.ProcessorArchitecture architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
 
@@ -197,7 +227,7 @@ namespace UnattendGen
                         PartitionLayout: PartitionLayout.GPT,
                         RecoveryMode: RecoveryMode.Partition),                          // PLEASE MODIFY THIS!!!
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
-                        name: "WIN-NHV7230VJNS"),
+                        name: computerName),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
                         TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
                     ProcessorArchitectures = architectures,
