@@ -98,4 +98,50 @@ namespace UnattendGen.UserSettings
         }
 
     }
+
+    public class DiskPartSettings
+    {
+        public string? scriptFile;
+
+        public bool automaticInstall;
+
+        public int diskNum;
+
+        public int partNum;
+
+        public static DiskPartSettings? LoadDiskSettings(string filePath)
+        {
+            DiskPartSettings diskPart = new DiskPartSettings();
+
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                {
+                    XmlReaderSettings xs = new XmlReaderSettings();
+                    xs.IgnoreWhitespace = true;
+                    using (XmlReader reader = XmlReader.Create(fs, xs))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "DiskPart")
+                            {
+                                diskPart.scriptFile = reader.GetAttribute("ScriptFile");
+                                diskPart.automaticInstall = (reader.GetAttribute("AutoInst") == "1");
+                                diskPart.diskNum = Convert.ToInt32(reader.GetAttribute("Disk"));
+                                diskPart.partNum = Convert.ToInt32(reader.GetAttribute("Partition"));
+                            }
+                        }
+                    }
+                }
+                return diskPart;
+            }
+            catch
+            {
+                if (Debugger.IsAttached)
+                    Debugger.Break();
+                return null;
+            }
+        }
+
+    }
 }

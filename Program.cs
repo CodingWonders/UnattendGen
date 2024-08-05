@@ -185,7 +185,7 @@ namespace UnattendGen
                                     {
                                         DiskZeroSettings? diskZero = DiskZeroSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unattPartSettings.xml"));
                                         generator.diskZeroSettings = diskZero;
-                                        
+                                        DebugWrite($"Disk 0 settings:\n\n\t- Partition Style: {diskZero.partStyle.ToString()}\n\t- Install Recovery Environment? {(diskZero.recoveryEnvironment != DiskZeroSettings.RecoveryEnvironmentMode.None ? $"Yes\n\t\t- Location: {diskZero.recoveryEnvironment.ToString()}\n\t{(diskZero.partStyle == DiskZeroSettings.PartitionStyle.GPT ? $"- EFI System Partition Size: {diskZero.ESPSize} MB\n\t" : "")}" : "No")}- Recovery Partition Size: {diskZero.recEnvSize} MB\n");
                                     }
                                     catch (Exception ex)
                                     {
@@ -203,7 +203,30 @@ namespace UnattendGen
                                 }
                                 break;
                             case "custom":
+                                Console.WriteLine("INFO: Selected partition mode is custom (use DiskPart script). Reading settings...");
                                 partition = AnswerFileGenerator.PartitionSettingsMode.Custom;
+                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DiskPartSettings.xml")))
+                                {
+                                    try
+                                    {
+                                        DiskPartSettings? diskPart = DiskPartSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DiskPartSettings.xml"));
+                                        generator.diskPartSettings = diskPart;
+                                        DebugWrite($"DiskPart settings:\n\n\t- Script file: \"{diskPart.scriptFile}\". Contents:\n\n{File.ReadAllText(diskPart.scriptFile)}\n\n\t- Automatic configuration? {(diskPart.automaticInstall ? "Yes" : $"No\n\t\t- Disk: {diskPart.diskNum}\n\t\t- Partition: {diskPart.partNum}")}\n");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("WARNING: Could not parse partition settings file. Continuing with Interactive...");
+                                        if (Debugger.IsAttached)
+                                            Debugger.Break();
+                                        DebugWrite($"Error Message - {ex.Message}");
+                                        partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("WARNING: Partition settings file does not exist. Continuing with Interactive...");
+                                    partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
+                                }
                                 break;
                             default:
                                 Console.WriteLine($"WARNING: Unknown partition mode: {cmdLine.Replace("/partmode=", "").Trim()}. Continuing with Interactive...");
@@ -254,6 +277,8 @@ namespace UnattendGen
         public PartitionSettingsMode partitionSettings;
 
         public DiskZeroSettings? diskZeroSettings;
+
+        public DiskPartSettings? diskPartSettings;
 
         public bool accountsInteractive;
 
@@ -329,6 +354,15 @@ namespace UnattendGen
                             },
                             EspSize: diskZeroSettings.ESPSize,
                             RecoverySize: diskZeroSettings.recEnvSize),
+                        PartitionSettingsMode.Custom => new CustomPartitionSettings(
+                            Script: File.ReadAllText(diskPartSettings.scriptFile),
+                            InstallTo: diskPartSettings.automaticInstall switch
+                            {
+                                true => new CustomInstallToSettings(
+                                    installToDisk: diskPartSettings.diskNum,
+                                    installToPartition: diskPartSettings.partNum),
+                                false => new AvailableInstallToSettings()
+                            }),
                         _ => new InteractivePartitionSettings()
                     },
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
