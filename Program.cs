@@ -86,6 +86,15 @@ namespace UnattendGen
 
             logonSettings = defaultLogonSettings;
 
+            AccountLockdown defaultLockdown = new AccountLockdown();
+            AccountLockdown lockdown = new AccountLockdown();
+            defaultLockdown.Enabled = true;
+            defaultLockdown.FailedAttempts = 10;
+            defaultLockdown.TimeFrame = 10;
+            defaultLockdown.AutoUnlock = 10;
+
+            lockdown = defaultLockdown;
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -392,13 +401,47 @@ namespace UnattendGen
                     {
                         try
                         {
-                            Console.WriteLine("INFO: Configuring password expiration settings");
+                            Console.WriteLine("INFO: Configuring password expiration settings...");
                             generator.ExpirationDays = Convert.ToInt32(cmdLine.Replace("/pwExpire=", "").Trim());
                             DebugWrite($"Password expiration: {generator.ExpirationDays} day(s)");
                         }
                         catch
                         {
                             generator.ExpirationDays = 0;
+                        }
+                    }
+                    else if (cmdLine.StartsWith("/lockdown", StringComparison.OrdinalIgnoreCase))
+                    {
+                        switch (cmdLine.Replace("/lockdown=", "").Trim())
+                        {
+                            case "yes":
+                                Console.WriteLine("INFO: Enforcing Account Lockdown policy...");
+                                lockdown.Enabled = true;
+                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockDown.xml")))
+                                {
+                                    Console.WriteLine("INFO: Lockdown policy file detected. Reading settings...");
+                                    try
+                                    {
+                                        lockdown = AccountLockdown.GetAccountLockdown(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockDown.xml"));
+                                        DebugWrite($"Account Lockdown Settings:\n\n\tAfter {lockdown.FailedAttempts} attempt(s) within {lockdown.TimeFrame} minute(s), unlock accounts automatically after {lockdown.AutoUnlock} minute(s)\n");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("WARNING: Could not parse Account Lockdown settings file. Continuing with default options...");
+                                        if (Debugger.IsAttached)
+                                            Debugger.Break();
+                                        DebugWrite($"Error Message - {ex.Message}");
+                                        lockdown = defaultLockdown;
+                                    }
+                                }
+                                break;
+                            case "no":
+                                Console.WriteLine("INFO: Disabling Account Lockdown policy. User accounts may be easier to penetrate into with brute-force attacks");
+                                lockdown.Enabled = false;
+                                break;
+                            default:
+
+                                break;
                         }
                     }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
@@ -413,6 +456,7 @@ namespace UnattendGen
             generator.partitionSettings = partition;
             generator.editionGenericChosen = genericChosen;
             generator.autoLogonSettings = logonSettings;
+            generator.lockdown = lockdown;
             if (generator.genericEdition is null)
             {
                 Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
@@ -475,6 +519,8 @@ namespace UnattendGen
         public bool Base64Obscure;
 
         public int ExpirationDays = 0;
+
+        public AccountLockdown? lockdown;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -567,6 +613,10 @@ namespace UnattendGen
                             productKey: genericEdition.ProductKey,
                             visible: true)) : new DirectEditionSettings(
                                 productKey: customKey),
+                    LockoutSettings = lockdown.Enabled ? new CustomLockoutSettings(
+                        lockoutThreshold: lockdown.FailedAttempts,
+                        lockoutWindow: lockdown.TimeFrame,
+                        lockoutDuration: lockdown.AutoUnlock) : new DisableLockoutSettings(),
                     PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
                         maxAge: ExpirationDays)),
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(

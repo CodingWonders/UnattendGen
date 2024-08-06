@@ -121,4 +121,58 @@ namespace UnattendGen.UserSettings
             return null;
         }
     }
+
+    public class AccountLockdown
+    {
+
+        public bool Enabled;
+
+        public int FailedAttempts;
+
+        public int TimeFrame;
+
+        public int AutoUnlock;
+
+        public static AccountLockdown? GetAccountLockdown(string filePath)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                {
+                    XmlReaderSettings xs = new XmlReaderSettings();
+                    xs.IgnoreWhitespace = true;
+                    using (XmlReader reader = XmlReader.Create(fs, xs))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "AccountLockdown")
+                            {
+                                AccountLockdown lockdown = new AccountLockdown();
+                                lockdown.Enabled = true;
+                                lockdown.FailedAttempts = Convert.ToInt32(reader.GetAttribute("FailedAttempts"));
+                                lockdown.TimeFrame = Convert.ToInt32(reader.GetAttribute("Timeframe"));
+                                lockdown.AutoUnlock = Convert.ToInt32(reader.GetAttribute("AutoUnlock"));
+
+                                if (lockdown.TimeFrame > lockdown.AutoUnlock)
+                                {
+                                    Console.WriteLine($"WARNING: Timeframe is higher than duration, making it equal...");
+                                    lockdown.TimeFrame = lockdown.AutoUnlock;
+                                }
+
+                                return lockdown;
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                if (Debugger.IsAttached)
+                    Debugger.Break();
+                return null;
+            }
+            return null;
+        }
+
+    }
 }
