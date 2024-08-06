@@ -95,6 +95,8 @@ namespace UnattendGen
 
             lockdown = defaultLockdown;
 
+            AnswerFileGenerator.VirtualMachineSolution vm = AnswerFileGenerator.VirtualMachineSolution.No;
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -444,6 +446,28 @@ namespace UnattendGen
                                 break;
                         }
                     }
+                    else if (cmdLine.StartsWith("/vm", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: Configuring Virtual Machine Support...");
+                        switch (cmdLine.Replace("/vm=", "").Trim())
+                        {
+                            case "vbox_gas":
+                                DebugWrite("VM Solution: VirtualBox Guest Additions");
+                                vm = AnswerFileGenerator.VirtualMachineSolution.VBox_GAs;
+                                break;
+                            case "vmware":
+                                DebugWrite("VM Solution: VMware Tools");
+                                vm = AnswerFileGenerator.VirtualMachineSolution.VMware_Tools;
+                                break;
+                            case "virtio":
+                                DebugWrite("VM Solution: VirtIO Guest Tools");
+                                vm = AnswerFileGenerator.VirtualMachineSolution.VirtIO;
+                                break;
+                            default:
+                                Console.WriteLine($"WARNING: Unknown VM solution: {cmdLine.Replace("/vm=", "").Trim()}. Continuing without VM support...");
+                                break;                                
+                        }
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
@@ -457,6 +481,7 @@ namespace UnattendGen
             generator.editionGenericChosen = genericChosen;
             generator.autoLogonSettings = logonSettings;
             generator.lockdown = lockdown;
+            generator.virtualMachine = vm;
             if (generator.genericEdition is null)
             {
                 Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
@@ -480,6 +505,14 @@ namespace UnattendGen
             Interactive,
             Unattended,
             Custom
+        }
+
+        public enum VirtualMachineSolution
+        {
+            No,
+            VBox_GAs,
+            VMware_Tools,
+            VirtIO
         }
 
         public bool regionalInteractive;
@@ -521,6 +554,8 @@ namespace UnattendGen
         public int ExpirationDays = 0;
 
         public AccountLockdown? lockdown;
+
+        public VirtualMachineSolution virtualMachine;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -625,7 +660,22 @@ namespace UnattendGen
                         TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
                     ProcessorArchitectures = architectures,
                     BypassRequirementsCheck = SV_LabConfig,
-                    BypassNetworkCheck = SV_BypassNRO
+                    BypassNetworkCheck = SV_BypassNRO,
+                    VBoxGuestAdditions = virtualMachine switch
+                    {
+                        VirtualMachineSolution.VBox_GAs => true,
+                        _ => false
+                    },
+                    VMwareTools = virtualMachine switch
+                    {
+                        VirtualMachineSolution.VMware_Tools => true,
+                        _ => false
+                    },
+                    VirtIoGuestTools = virtualMachine switch
+                    {
+                        VirtualMachineSolution.VirtIO => true,
+                        _ => false
+                    }
                 }
                 );
             try
