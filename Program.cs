@@ -79,6 +79,13 @@ namespace UnattendGen
 
             bool accountsInteractive = true;
 
+            AutoLogon defaultLogonSettings = new AutoLogon();
+            AutoLogon logonSettings = new AutoLogon();
+            defaultLogonSettings.logonMode = AutoLogon.AutoLogonMode.None;
+            defaultLogonSettings.winAdminPass = "";
+
+            logonSettings = defaultLogonSettings;
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -300,7 +307,8 @@ namespace UnattendGen
                                             Console.WriteLine($"\t\t- Password: {account.Password}");
                                             Console.WriteLine($"\t\t- Group: {account.Group switch { 
                                                 UserAccount.UserGroup.Administrators => "Administrators",
-                                                UserAccount.UserGroup.Users => "Users"
+                                                UserAccount.UserGroup.Users => "Users",
+                                                _ => "Users"
                                             }}");
                                         }
                                     }
@@ -309,7 +317,7 @@ namespace UnattendGen
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("WARNING: Could not parse user accounts file. Continuing with default Pro edition...");
+                                Console.WriteLine("WARNING: Could not parse user accounts file. Continuing with Interactive Settings...");
                                 if (Debugger.IsAttached)
                                     Debugger.Break();
                                 DebugWrite($"Error Message - {ex.Message}");
@@ -318,9 +326,67 @@ namespace UnattendGen
                         }
                         else
                         {
-                            Console.WriteLine("WARNING: Edition settings file does not exist. Continuing with default Pro edition...");
+                            Console.WriteLine("WARNING: User accounts file does not exist. Continuing with Interactive Settings...");
                             accountsInteractive = true;                            
                         }
+                    }
+                    else if (cmdLine.StartsWith("/autologon", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!accountsInteractive)
+                        {
+                            Console.WriteLine("INFO: Configuring auto-logon settings...");
+                            switch (cmdLine.Replace("/autologon=", "").Trim())
+                            {
+                                case "firstadmin":
+                                    DebugWrite("Setting auto-logon to first admin...");
+                                    logonSettings.logonMode = AutoLogon.AutoLogonMode.FirstAdmin;
+                                    if (generator.accounts.Count > 0)
+                                    {
+                                        foreach (UserAccount account in generator.accounts)
+                                        {
+                                            if (account.Group == UserAccount.UserGroup.Administrators)
+                                            {
+                                                DebugWrite($"First Admin in Accounts list: {account.Name}");
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                case "builtinadmin":
+                                    DebugWrite("Setting auto-logon to Windows admin...");
+                                    if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "autoLogon.xml")))
+                                    {
+                                        try
+                                        {
+                                            logonSettings.winAdminPass = AutoLogon.GetAdminPassword(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "autoLogon.xml"));
+                                            logonSettings.logonMode = AutoLogon.AutoLogonMode.BuiltInAdmin;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine("WARNING: Could not parse auto-logon settings file. Disabling auto-logon...");
+                                            if (Debugger.IsAttached)
+                                                Debugger.Break();
+                                            DebugWrite($"Error Message - {ex.Message}");
+                                            logonSettings.logonMode = AutoLogon.AutoLogonMode.None;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("WARNING: Auto-logon settings file does not exist. Disabling auto-logon...");
+                                        logonSettings.logonMode = AutoLogon.AutoLogonMode.None;
+                                    }
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("INFO: Auto-logon settings will not be configured since you need to configure accounts during Setup. Please pass the \"/customusers\" flag after providing a user data file with the name of \"userAccounts.xml\" to be able to configure these settings");
+                        }
+                    }
+                    else if (cmdLine.StartsWith("/b64obscure", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DebugWrite("User passwords will be obscured with Base64");
+                        generator.Base64Obscure = true;
                     }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
@@ -333,6 +399,7 @@ namespace UnattendGen
             generator.accountsInteractive = accountsInteractive;
             generator.partitionSettings = partition;
             generator.editionGenericChosen = genericChosen;
+            generator.autoLogonSettings = logonSettings;
             if (generator.genericEdition is null)
             {
                 Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
@@ -390,35 +457,14 @@ namespace UnattendGen
 
         public List<UserAccount>? accounts;
 
+        public AutoLogon? autoLogonSettings;
+
+        public bool Base64Obscure;
+
         public async Task GenerateAnswerFile(string targetPath)
         {
             // follow example for now, document settings for later DT integration
 
-            Account account1 = new Account(
-                name: "Homer",
-                password: "Test_1234",
-                group: "Administrators"
-            );
-            Account account2 = new Account(
-                name: "Marge",
-                password: "Test_1234",
-                group: "Administrators"
-            );
-            Account account3 = new Account(
-                name: "Bart",
-                password: "Test_1234",
-                group: "Users"
-            );
-            Account account4 = new Account(
-                name: "Lisa",
-                password: "Test_1234",
-                group: "Users"
-            );
-            Account account5 = new Account(
-                name: "Maggie",
-                password: "Test_1234",
-                group: "Users"
-            );
             ImmutableList<Account> userAccounts = ImmutableList<Account>.Empty;
             List<Account> accountList = new List<Account>();
 
@@ -434,7 +480,8 @@ namespace UnattendGen
                         group: account.Group switch
                         {
                             UserAccount.UserGroup.Administrators => "Administrators",
-                            UserAccount.UserGroup.Users => "Users"
+                            UserAccount.UserGroup.Users => "Users",
+                            _ => "Users"
                         }));
                 }
             }
@@ -459,9 +506,15 @@ namespace UnattendGen
                         GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
                     AccountSettings = accountsInteractive ? new InteractiveAccountSettings() : new UnattendedAccountSettings(
                         accounts: userAccounts,
-                        autoLogonSettings: new BuiltinAutoLogonSettings(
-                            password: account1.Password),
-                        obscurePasswords: true),
+                        autoLogonSettings: autoLogonSettings.logonMode switch
+                        {
+                            AutoLogon.AutoLogonMode.None => new NoneAutoLogonSettings(),
+                            AutoLogon.AutoLogonMode.FirstAdmin => new OwnAutoLogonSettings(),
+                            AutoLogon.AutoLogonMode.BuiltInAdmin => new BuiltinAutoLogonSettings(
+                                password: autoLogonSettings.winAdminPass),
+                            _ => new NoneAutoLogonSettings()
+                        },
+                        obscurePasswords: Base64Obscure),
                     PartitionSettings = partitionSettings switch
                     {
                         PartitionSettingsMode.Interactive => new InteractivePartitionSettings(),

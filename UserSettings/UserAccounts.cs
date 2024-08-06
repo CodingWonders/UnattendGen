@@ -27,7 +27,7 @@ namespace UnattendGen.UserSettings
 
         public UserGroup Group;
 
-        public static List<UserAccount> LoadAccounts(string filePath)
+        public static List<UserAccount>? LoadAccounts(string filePath)
         {
             List<UserAccount> accountList = new List<UserAccount>();
 
@@ -74,5 +74,51 @@ namespace UnattendGen.UserSettings
             }
         }
 
+    }
+
+    public class AutoLogon
+    {
+
+        public enum AutoLogonMode
+        {
+            None,
+            FirstAdmin,
+            BuiltInAdmin
+        }
+
+        public AutoLogonMode logonMode;
+
+        // Built-in Admin Settings
+
+        public string? winAdminPass;
+
+        public static string? GetAdminPassword(string filePath)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                {
+                    XmlReaderSettings xs = new XmlReaderSettings();
+                    xs.IgnoreWhitespace = true;
+                    using (XmlReader reader = XmlReader.Create(fs, xs))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "BuiltInAdmin")
+                            {
+                                return reader.GetAttribute("Password");
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                if (Debugger.IsAttached)
+                    Debugger.Break();
+                return null;
+            }
+            return null;
+        }
     }
 }
