@@ -412,10 +412,10 @@ namespace UnattendGen
                             Script: File.ReadAllText(diskPartSettings.scriptFile),
                             InstallTo: diskPartSettings.automaticInstall switch
                             {
-                                true => new CustomInstallToSettings(
+                                true => new AvailableInstallToSettings(),
+                                false => new CustomInstallToSettings(
                                     installToDisk: diskPartSettings.diskNum,
-                                    installToPartition: diskPartSettings.partNum),
-                                false => new AvailableInstallToSettings()
+                                    installToPartition: diskPartSettings.partNum)
                             }),
                         _ => new InteractivePartitionSettings()
                     },
