@@ -388,6 +388,19 @@ namespace UnattendGen
                         DebugWrite("User passwords will be obscured with Base64");
                         generator.Base64Obscure = true;
                     }
+                    else if (cmdLine.StartsWith("/pwExpire", StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            Console.WriteLine("INFO: Configuring password expiration settings");
+                            generator.ExpirationDays = Convert.ToInt32(cmdLine.Replace("/pwExpire=", "").Trim());
+                            DebugWrite($"Password expiration: {generator.ExpirationDays} day(s)");
+                        }
+                        catch
+                        {
+                            generator.ExpirationDays = 0;
+                        }
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
@@ -460,6 +473,8 @@ namespace UnattendGen
         public AutoLogon? autoLogonSettings;
 
         public bool Base64Obscure;
+
+        public int ExpirationDays = 0;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -552,6 +567,8 @@ namespace UnattendGen
                             productKey: genericEdition.ProductKey,
                             visible: true)) : new DirectEditionSettings(
                                 productKey: customKey),
+                    PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
+                        maxAge: ExpirationDays)),
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
                         name: computerName),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
