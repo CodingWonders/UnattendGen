@@ -77,6 +77,8 @@ namespace UnattendGen
             defaultEdition.DisplayName = "Pro";
             defaultEdition.ProductKey = "VK7JG-NPHTM-C97JM-9MPGT-3V66T";
 
+            bool accountsInteractive = true;
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -243,7 +245,7 @@ namespace UnattendGen
                     else if (cmdLine.StartsWith("/generic", StringComparison.OrdinalIgnoreCase))
                     {
                         generator.genericEdition = defaultEdition;
-                        Console.WriteLine("INFO: The unattended answer file will use a generic product key. Reading edition configuration");
+                        Console.WriteLine("INFO: The unattended answer file will use a generic product key. Reading edition configuration...");
                         if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "edition.xml")))
                         {
                             try
@@ -275,6 +277,51 @@ namespace UnattendGen
                         DebugWrite($"Edition settings:\n\n\t- Product key: {key}\n");
                         generator.customKey = key;
                     }
+                    else if (cmdLine.StartsWith("/customusers", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: Manual user configuration will be used. Reading user list...");
+                        accountsInteractive = false;
+                        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "userAccounts.xml")))
+                        {
+                            try
+                            {
+                                List<UserAccount> accounts = UserAccount.LoadAccounts(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "userAccounts.xml"));
+                                generator.accounts = accounts;
+                                DebugWrite($"User accounts:\n");
+                                if (accounts.Count > 0)
+                                {
+                                    foreach (UserAccount account in accounts)
+                                    {
+                                        Console.WriteLine($"\t- User {accounts.IndexOf(account) + 1}:");
+                                        Console.WriteLine($"\t\t- Enabled? {(account.Enabled ? "Yes" : "No")}");
+                                        if (account.Enabled)
+                                        {
+                                            Console.WriteLine($"\t\t- Name: {account.Name}");
+                                            Console.WriteLine($"\t\t- Password: {account.Password}");
+                                            Console.WriteLine($"\t\t- Group: {account.Group switch { 
+                                                UserAccount.UserGroup.Administrators => "Administrators",
+                                                UserAccount.UserGroup.Users => "Users"
+                                            }}");
+                                        }
+                                    }
+                                    Console.WriteLine();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("WARNING: Could not parse user accounts file. Continuing with default Pro edition...");
+                                if (Debugger.IsAttached)
+                                    Debugger.Break();
+                                DebugWrite($"Error Message - {ex.Message}");
+                                accountsInteractive = true;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("WARNING: Edition settings file does not exist. Continuing with default Pro edition...");
+                            accountsInteractive = true;                            
+                        }
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
@@ -283,13 +330,18 @@ namespace UnattendGen
             generator.regionalSettings = region;
             generator.randomComputerName = (computerName == "");
             generator.computerName = computerName;
-            generator.accountsInteractive = false;
+            generator.accountsInteractive = accountsInteractive;
             generator.partitionSettings = partition;
             generator.editionGenericChosen = genericChosen;
             if (generator.genericEdition is null)
             {
                 Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
                 generator.genericEdition = defaultEdition;
+            }
+            if (generator.accounts is null)
+            {
+                Console.WriteLine("WARNING: No users have been specified. Continuing with Interactive settings...");
+                generator.accountsInteractive = true;
             }
 
             await generator.GenerateAnswerFile(targetPath != "" ? targetPath : "unattend.xml");
@@ -336,6 +388,8 @@ namespace UnattendGen
 
         public bool accountsInteractive;
 
+        public List<UserAccount>? accounts;
+
         public async Task GenerateAnswerFile(string targetPath)
         {
             // follow example for now, document settings for later DT integration
@@ -365,8 +419,27 @@ namespace UnattendGen
                 password: "Test_1234",
                 group: "Users"
             );
-            ImmutableList<Account> accounts = ImmutableList<Account>.Empty;
-            accounts = accounts.AddRange([account1, account2, account3, account4, account5]);
+            ImmutableList<Account> userAccounts = ImmutableList<Account>.Empty;
+            List<Account> accountList = new List<Account>();
+
+            if (null != accounts && accounts.Count > 0)
+            {
+                foreach (UserAccount account in accounts)
+                {
+                    if (!account.Enabled)
+                        continue;
+                    accountList.Add(new Account(
+                        name: account.Name,
+                        password: account.Password,
+                        group: account.Group switch
+                        {
+                            UserAccount.UserGroup.Administrators => "Administrators",
+                            UserAccount.UserGroup.Users => "Users"
+                        }));
+                }
+            }
+
+            userAccounts = userAccounts.AddRange(accountList.ToArray());
 
             ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
             architectures = architectures.Add(architecture);
@@ -385,7 +458,7 @@ namespace UnattendGen
                         LocaleAndKeyboard3: null,
                         GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
                     AccountSettings = accountsInteractive ? new InteractiveAccountSettings() : new UnattendedAccountSettings(
-                        accounts: accounts,
+                        accounts: userAccounts,
                         autoLogonSettings: new BuiltinAutoLogonSettings(
                             password: account1.Password),
                         obscurePasswords: true),

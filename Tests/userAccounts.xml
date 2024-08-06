@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<root>
+    <UserAccount Enabled="1" Name="Bill Gates" Password="Test1" Group="Admins" />
+    <UserAccount Enabled="1" Name="Steve Ballmer" Password="Test2" Group="Admins" />
+    <UserAccount Enabled="1" Name="Dave Cutler" Password="Test3" Group="Admins" />
+    <UserAccount Enabled="1" Name="Raymond Chen" Password="Test4" Group="Admins" />
+    <UserAccount Enabled="1" Name="Mark Russinovich" Password="Test5" Group="Admins" />
+    <UserAccount Enabled="1" Name="Mads Kristensen" Password="Test6" Group="Admins" />
+</root>
