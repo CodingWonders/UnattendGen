@@ -50,6 +50,42 @@ namespace UnattendGen
             Console.WriteLine($"DEBUG: {msg}");
         }
 
+        static void ShowHelpMessage()
+        {
+            Console.WriteLine("=== PROGRAM HELP ===\n");
+            Console.WriteLine("USAGE\n\n" +
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
+            Console.WriteLine("SWITCHES\n\n" +
+                "\tGeneral switches:\n\n" +
+                "\t\t/?         \t\tShows this help screen\n" +
+                "\t\t/target    \t\tSaves the unattended answer file to the path specified by <targetPath>. Defaults to \"unattend.xml\" in the current directory if not set.\n\n" +
+                "\tRegional settings:\n\n" +
+                "\t\t/regionfile\t\tConfigures regional settings given a XML file specified by <regionFile>. Defaults to Interactive regional settings if not set.\n\n" +
+                "\tBasic system settings:\n\n" +
+                "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); arm64 (Windows on ARM). Defaults to amd64 if not set\n" +
+                "\t\t/LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
+                "\t\t/BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
+                "\t\t/computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
+                "\tTime zone settings:\n\n" +
+                "\t\t/tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
+                "\tDisk configuration settings:\n\n" +
+                "\t\t/partmode\t\tSets the partitioning mode. Possible values: interactive (ask during system setup); unattended (configure settings of Disk 0); custom (use a DiskPart script). Defaults to interactive if not set\n\n" +
+                "\tEdition settings: (USE EITHER SWITCH BUT NOT BOTH)\n\n" +
+                "\t\t/generic\t\tSets generic edition settings using a configuration file. Defaults to Pro edition if not set\n" +
+                "\t\t/customkey\t\tSets a custom key, defined by <key> to be used for installation, which may or may not be valid\n\n" +
+                "\tUser settings:\n\n" +
+                "\t\t/customusers\t\tConfigures the users of the target system with a \"userAccounts.xml\" configuration file. Defaults to an interactive setup if not specified\n" +
+                "\t\t/autologon\t\tConfigures user automatic log-on settings. Possible values: firstadmin (first admin in account list); builtinadmin (built-in Windows admin account). Defaults to disabled auto log-on if not set\n" +
+                "\t\t/b64obscure\t\tObscures passwords with Base64\n" +
+                "\t\t/lockdown\t\tConfigures account lockdown settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
+                "\tVirtual Machine Support:\n\n" +
+                "\t\t/vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools). Defaults to no VM support if not set\n\n" +
+                "\tWireless settings:\n\n" +
+                "\t\t/wifi    \t\tConfigures wireless networking for the target system. Possible values: yes (configure settings with a wireless configuration file); no (skip configuration). Defaults to interactive if not set\n\n" +
+                "\tSystem telemetry:\n\n" +
+                "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set");
+        }
+
         static async Task Main(string[] args)
         {
             bool debugMode = true;
@@ -103,7 +139,7 @@ namespace UnattendGen
 
             AnswerFileGenerator.SystemTelemetry telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
 
-            Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
+            Console.WriteLine($"UnattendGen, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
             Console.WriteLine("-------------------------------------------------");
@@ -113,10 +149,14 @@ namespace UnattendGen
 
             if (Environment.GetCommandLineArgs().Length >= 2)
             {
-                Console.WriteLine("Parsing command-line switches...\n");
                 foreach (string cmdLine in Environment.GetCommandLineArgs())
                 {
-                    if (cmdLine.StartsWith("/target", StringComparison.OrdinalIgnoreCase))
+                    if (cmdLine == "/?")
+                    {
+                        ShowHelpMessage();
+                        return;
+                    }
+                    else if (cmdLine.StartsWith("/target", StringComparison.OrdinalIgnoreCase))
                     {
                         targetPath = cmdLine.Replace("/target=", "").Trim();
                     }
@@ -801,7 +841,7 @@ namespace UnattendGen
                     NewLineChars = "\r\n",
                 });
                 xml.Save(writer);
-                Console.WriteLine($"\nUnattended answer file has been generated at \"{targetPath}\"");
+                Console.WriteLine($"\nSUCCESS: Unattended answer file has been generated at \"{targetPath}\"");
             }
             catch (Exception ex)
             {
