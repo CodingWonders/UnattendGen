@@ -55,7 +55,7 @@ namespace UnattendGen
             bool debugMode = true;
 
             string targetPath = "";
-            bool regionInteractive = false;
+            bool regionInteractive = true;
             string regionFile = "";
             RegionFile region = new RegionFile();
             RegionFile defaultRegion = new RegionFile();
@@ -114,13 +114,10 @@ namespace UnattendGen
                     {
                         targetPath = cmdLine.Replace("/target=", "").Trim();
                     }
-                    else if (cmdLine.StartsWith("/region-interactive", StringComparison.OrdinalIgnoreCase))
-                    {
-                        regionInteractive = true;
-                    }
                     else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Region file specified. Reading settings...");
+                        regionInteractive = false;
                         regionFile = cmdLine.Replace("/regionfile=", "").Trim();
                         if (regionFile != "" && File.Exists(regionFile))
                         {
@@ -135,12 +132,18 @@ namespace UnattendGen
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("WARNING: Could not parse regional settings file. Continuing with default settings...");
+                                Console.WriteLine("WARNING: Could not parse regional settings file. Continuing with Interactive...");
                                 if (Debugger.IsAttached)
                                     Debugger.Break();
                                 DebugWrite($"Error Message - {ex.Message}");
                                 region = defaultRegion;
+                                regionInteractive = true;
                             }
+                        }
+                        else
+                        {
+                            Console.WriteLine("WARNING: Regional settings file does not exist. Continuing with Interactive...");
+                            regionInteractive = true;
                         }
                     }
                     else if (cmdLine.StartsWith("/architecture", StringComparison.OrdinalIgnoreCase))
