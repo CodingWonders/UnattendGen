@@ -101,6 +101,8 @@ namespace UnattendGen
             bool wirelessSkip = false;
             WirelessNetwork wirelessNetwork = new WirelessNetwork();
 
+            AnswerFileGenerator.SystemTelemetry telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -521,6 +523,25 @@ namespace UnattendGen
                                 break;
                         }
                     }
+                    else if (cmdLine.StartsWith("/telem", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: Configuring system telemetry settings...");
+                        switch (cmdLine.Replace("/telem=", "").Trim())
+                        {
+                            case "yes":
+                                DebugWrite("Enabling system telemetry...");
+                                telemetry = AnswerFileGenerator.SystemTelemetry.Yes;
+                                break;
+                            case "no":
+                                DebugWrite("(Attempting to) disable system telemetry...");
+                                telemetry = AnswerFileGenerator.SystemTelemetry.No;
+                                break;
+                            default:
+                                Console.WriteLine($"WARNING: Unknown telemetry configuration: {cmdLine.Replace("/telem=", "").Trim()}. Continuing with Interactive settings...");
+                                telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
+                                break;
+                        }
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
@@ -538,6 +559,7 @@ namespace UnattendGen
             generator.WirelessInteractive = wirelessInteractive;
             generator.WirelessSkip = wirelessSkip;
             generator.WirelessSettings = wirelessNetwork;
+            generator.Telemetry = telemetry;
             if (generator.genericEdition is null)
             {
                 Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
@@ -569,6 +591,13 @@ namespace UnattendGen
             VBox_GAs,
             VMware_Tools,
             VirtIO
+        }
+
+        public enum SystemTelemetry
+        {
+            Interactive,
+            No,
+            Yes
         }
 
         public bool regionalInteractive;
@@ -618,6 +647,8 @@ namespace UnattendGen
         public bool WirelessSkip;
 
         public WirelessNetwork? WirelessSettings;
+
+        public SystemTelemetry Telemetry;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -733,6 +764,13 @@ namespace UnattendGen
                         },
                         NonBroadcast: WirelessSettings.NonBroadcast),
                     ProcessorArchitectures = architectures,
+                    ExpressSettings = Telemetry switch
+                    {
+                        SystemTelemetry.Interactive => ExpressSettingsMode.Interactive,
+                        SystemTelemetry.No => ExpressSettingsMode.DisableAll,
+                        SystemTelemetry.Yes => ExpressSettingsMode.EnableAll,
+                        _ => ExpressSettingsMode.DisableAll
+                    },
                     BypassRequirementsCheck = SV_LabConfig,
                     BypassNetworkCheck = SV_BypassNRO,
                     VBoxGuestAdditions = virtualMachine switch
