@@ -97,6 +97,10 @@ namespace UnattendGen
 
             AnswerFileGenerator.VirtualMachineSolution vm = AnswerFileGenerator.VirtualMachineSolution.No;
 
+            bool wirelessInteractive = true;
+            bool wirelessSkip = false;
+            WirelessNetwork wirelessNetwork = new WirelessNetwork();
+
             Console.WriteLine($"Unattended Answer File Generator, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -471,6 +475,52 @@ namespace UnattendGen
                                 break;                                
                         }
                     }
+                    else if (cmdLine.StartsWith("/wifi", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: Configuring Wireless Networks...");
+                        switch (cmdLine.Replace("/wifi=", "").Trim())
+                        {
+                            case "yes":
+                                Console.WriteLine("INFO: Wireless settings will be configured. Reading configuration file...");
+                                wirelessInteractive = false;
+                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wireless.xml")))
+                                {
+                                    try
+                                    {
+                                        WirelessNetwork wireless = WirelessNetwork.LoadSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wireless.xml"));
+                                        wirelessNetwork = wireless;
+                                        DebugWrite($"Wireless settings:\n");
+                                        Console.WriteLine($"\t- SSID: {wireless.SSID}");
+                                        Console.WriteLine($"\t- Password: {new string('*', wireless.Password.Length)} (hidden for your security)");
+                                        Console.WriteLine($"\t- Authentication mode: {wireless.Authentication switch { 
+                                            WirelessNetwork.AuthenticationProtocol.Open => "Open (most vulnerable)",
+                                            WirelessNetwork.AuthenticationProtocol.WPA2 => "WPA2-PSK",
+                                            WirelessNetwork.AuthenticationProtocol.WPA3 => "WPA3-SAE",
+                                            _ => "WPA2-PSK"
+                                        }}");
+                                        Console.WriteLine($"\t- Connect even if not broadcasting? {(wireless.NonBroadcast ? "Yes" : "No")}");
+                                        Console.WriteLine();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("WARNING: Could not parse wireless settings file. Continuing with Interactive Settings...");
+                                        if (Debugger.IsAttached)
+                                            Debugger.Break();
+                                        DebugWrite($"Error Message - {ex.Message}");
+                                        wirelessInteractive = true;
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("WARNING: Wireless settings file does not exist. Continuing with Interactive Settings...");
+                                    wirelessInteractive = true;                            
+                                }
+                                break;
+                            case "no":
+                                wirelessSkip = true;
+                                break;
+                        }
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}");
                 }
@@ -485,6 +535,9 @@ namespace UnattendGen
             generator.autoLogonSettings = logonSettings;
             generator.lockdown = lockdown;
             generator.virtualMachine = vm;
+            generator.WirelessInteractive = wirelessInteractive;
+            generator.WirelessSkip = wirelessSkip;
+            generator.WirelessSettings = wirelessNetwork;
             if (generator.genericEdition is null)
             {
                 Console.WriteLine("WARNING: No edition settings have been specified. Continuing with the default Pro edition...");
@@ -559,6 +612,12 @@ namespace UnattendGen
         public AccountLockdown? lockdown;
 
         public VirtualMachineSolution virtualMachine;
+
+        public bool WirelessInteractive;
+
+        public bool WirelessSkip;
+
+        public WirelessNetwork? WirelessSettings;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -661,6 +720,18 @@ namespace UnattendGen
                         name: computerName),
                     TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
                         TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
+                    WifiSettings = WirelessInteractive ? new InteractiveWifiSettings() : WirelessSkip ? new SkipWifiSettings() : new ParameterizedWifiSettings(
+                        Name: WirelessSettings.SSID,
+                        Password: WirelessSettings.Password,
+                        ConnectAutomatically: true,
+                        Authentication: WirelessSettings.Authentication switch
+                        {
+                            WirelessNetwork.AuthenticationProtocol.Open => WifiAuthentications.Open,
+                            WirelessNetwork.AuthenticationProtocol.WPA2 => WifiAuthentications.WPA2PSK,
+                            WirelessNetwork.AuthenticationProtocol.WPA3 => WifiAuthentications.WPA3SAE,
+                            _ => WifiAuthentications.WPA2PSK
+                        },
+                        NonBroadcast: WirelessSettings.NonBroadcast),
                     ProcessorArchitectures = architectures,
                     BypassRequirementsCheck = SV_LabConfig,
                     BypassNetworkCheck = SV_BypassNRO,

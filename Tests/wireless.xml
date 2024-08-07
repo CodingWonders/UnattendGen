@@ -1,0 +1,4 @@
+<?xml version="1.0" ?>
+<root>
+    <WirelessNetwork Name="TestNetwork" Password="TestNet" AuthMode="WPA3" NonBroadcast="1" />
+</root>
