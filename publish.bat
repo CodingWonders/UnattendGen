@@ -13,13 +13,6 @@ if exist "bin\release\net8.0" (
 
 cls
 
-echo Publishing binaries...
-
-:: Publish release for x86, amd64 and arm64
-dotnet publish -r:win-x86
-dotnet publish -r:win-x64
-dotnet publish -r:win-arm64
-
 echo Publishing self-contained binaries...
 
 :: Publish self-contained versions
@@ -31,3 +24,10 @@ if exist "bin\release\net8.0\sc" (
 	echo Zipping self-contained binaries...
 	powershell -ExecutionPolicy Bypass ".\SelfContainedZip.ps1"
 )
+
+echo Publishing regular binaries...
+
+:: Publish release for x86, amd64 and arm64
+dotnet publish -r:win-x86
+dotnet publish -r:win-x64
+dotnet publish -r:win-arm64
