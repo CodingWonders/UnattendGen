@@ -54,7 +54,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -77,6 +77,7 @@ namespace UnattendGen
                 "\t\t/customusers\t\tConfigures the users of the target system with a \"userAccounts.xml\" configuration file. Defaults to an interactive setup if not specified\n" +
                 "\t\t/autologon\t\tConfigures user automatic log-on settings. Possible values: firstadmin (first admin in account list); builtinadmin (built-in Windows admin account). Defaults to disabled auto log-on if not set\n" +
                 "\t\t/b64obscure\t\tObscures passwords with Base64\n" +
+                "\t\t/pwExpire\t\tConfigures password expiration settings (not recommended by NIST) given the value defined in <days>. Defaults to no password expiration if not set\n" +
                 "\t\t/lockdown\t\tConfigures account lockdown settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
                 "\tVirtual Machine Support:\n\n" +
                 "\t\t/vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools). Defaults to no VM support if not set\n\n" +
