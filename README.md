@@ -2,9 +2,6 @@
 
 **UnattendGen** is a console application that generates unattended answer files given certain parameters.
 
-> [!NOTE]
-> This is in the experimental stages
-
 ## Licenses
 
 - **Program:** GNU GPLv3
