@@ -23,6 +23,7 @@ dotnet publish -r:win-arm64 --sc -o "bin\release\net8.0\sc\win-arm64"
 if exist "bin\release\net8.0\sc" (
 	echo Zipping self-contained binaries...
 	powershell -ExecutionPolicy Bypass ".\SelfContainedZip.ps1"
+	rd "bin\release\net8.0\sc" /s /q
 )
 
 echo Publishing regular binaries...
@@ -31,3 +32,6 @@ echo Publishing regular binaries...
 dotnet publish -r:win-x86
 dotnet publish -r:win-x64
 dotnet publish -r:win-arm64
+
+echo Zipping regular binaries...
+powershell -ExecutionPolicy Bypass ".\RegularZip.ps1"
