@@ -4,6 +4,8 @@ param (
 	[Parameter(Mandatory = $true, Position = 0)] [string] $tag
 )
 
+[Net.ServicePointManager]::SecurityProtocol = "Tls12"
+
 Write-Host "Downloading self-contained UnattendGen..."
 Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/UnattendGen-x64--SelfContained.zip" -OutFile ".\unattendgen-sc-amd64.zip"
 Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/UnattendGen-x86--SelfContained.zip" -OutFile ".\unattendgen-sc-x86.zip"
