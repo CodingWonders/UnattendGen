@@ -45,9 +45,10 @@ namespace UnattendGen
             return name;
         }
 
-        static void DebugWrite(string msg)
+        static void DebugWrite(string msg, bool debugMsg = false)
         {
-            Console.WriteLine($"DEBUG: {msg}");
+            if (debugMsg)
+                Console.WriteLine($"DEBUG: {msg}");
         }
 
         static void ShowHelpMessage()
@@ -89,7 +90,7 @@ namespace UnattendGen
 
         static async Task Main(string[] args)
         {
-            bool debugMode = true;
+            bool debugMode = false;
 
             string targetPath = "";
             bool regionInteractive = true;
@@ -140,7 +141,7 @@ namespace UnattendGen
 
             AnswerFileGenerator.SystemTelemetry telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
 
-            Console.WriteLine($"UnattendGen, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
+            Console.WriteLine($"UnattendGen{(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DT")) ? " for DISMTools" : "")}, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
             Console.WriteLine("-------------------------------------------------");
@@ -175,14 +176,14 @@ namespace UnattendGen
                                 region.regionLocales = UserLocales.LoadItems(regionFile);
                                 region.regionKeys = KeyboardIdentifiers.LoadItems(regionFile);
                                 region.regionTimes = TimeOffsets.LoadItems(regionFile);
-                                DebugWrite($"Regional Settings:\n\n\t- Image Language: {region.regionLang[0].Id}\n\t- Locale: {region.regionLocales[0].Id}\n\t- Keyboard: {region.regionKeys[0].Id}\n\t- Geo ID: {region.regionGeo[0].Id}\n\t- Time Offset: {region.regionTimes[0].Id}\n");
+                                DebugWrite($"Regional Settings:\n\n\t- Image Language: {region.regionLang[0].Id}\n\t- Locale: {region.regionLocales[0].Id}\n\t- Keyboard: {region.regionKeys[0].Id}\n\t- Geo ID: {region.regionGeo[0].Id}\n\t- Time Offset: {region.regionTimes[0].Id}\n", (debugMode | Debugger.IsAttached));
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine("WARNING: Could not parse regional settings file. Continuing with Interactive...");
                                 if (Debugger.IsAttached)
                                     Debugger.Break();
-                                DebugWrite($"Error Message - {ex.Message}");
+                                DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                 region = defaultRegion;
                                 regionInteractive = true;
                             }
@@ -200,16 +201,16 @@ namespace UnattendGen
                             case "x86":
                             case "i386":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.x86;
-                                DebugWrite("Architecture: x86");
+                                DebugWrite("Architecture: x86", (debugMode | Debugger.IsAttached));
                                 break;
                             case "x64":
                             case "amd64":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
-                                DebugWrite("Architecture: amd64");
+                                DebugWrite("Architecture: amd64", (debugMode | Debugger.IsAttached));
                                 break;
                             case "arm64":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.arm64;
-                                DebugWrite("Architecture: arm64");
+                                DebugWrite("Architecture: arm64", (debugMode | Debugger.IsAttached));
                                 break;
                             default:
                                 Console.WriteLine($"WARNING: Unknown processor architecture: {cmdLine.Replace("/architecture=", "").Trim()}. Continuing with AMD64...");
@@ -219,12 +220,12 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("/LabConfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        DebugWrite("LabConfig: True");
+                        DebugWrite("LabConfig: True", (debugMode | Debugger.IsAttached));
                         generator.SV_LabConfig = true;
                     }
                     else if (cmdLine.StartsWith("/BypassNRO", StringComparison.OrdinalIgnoreCase))
                     {
-                        DebugWrite("BypassNRO: True");
+                        DebugWrite("BypassNRO: True", (debugMode | Debugger.IsAttached));
                         Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
                         generator.SV_BypassNRO = true;
                     }
@@ -236,13 +237,13 @@ namespace UnattendGen
                         if (name == "")
                             Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("/computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
 
-                        DebugWrite($"Computer name: {name}");
+                        DebugWrite($"Computer name: {name}", (debugMode | Debugger.IsAttached));
 
                         computerName = name;
                     }
                     else if (cmdLine.StartsWith("/tzImplicit", StringComparison.OrdinalIgnoreCase))
                     {
-                        DebugWrite("Time Zone is now implicit (determine from Regional Settings - See Respective Settings For More Info!!!)");
+                        DebugWrite("Time Zone is now implicit (determine from Regional Settings - See Respective Settings For More Info!!!)", (debugMode | Debugger.IsAttached));
                         generator.timeZoneImplicit = true;
                     }
                     else if (cmdLine.StartsWith("/partmode", StringComparison.OrdinalIgnoreCase))
@@ -261,14 +262,14 @@ namespace UnattendGen
                                     {
                                         DiskZeroSettings? diskZero = DiskZeroSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unattPartSettings.xml"));
                                         generator.diskZeroSettings = diskZero;
-                                        DebugWrite($"Disk 0 settings:\n\n\t- Partition Style: {diskZero.partStyle.ToString()}\n\t- Install Recovery Environment? {(diskZero.recoveryEnvironment != DiskZeroSettings.RecoveryEnvironmentMode.None ? $"Yes\n\t\t- Location: {diskZero.recoveryEnvironment.ToString()}\n\t{(diskZero.partStyle == DiskZeroSettings.PartitionStyle.GPT ? $"- EFI System Partition Size: {diskZero.ESPSize} MB\n\t" : "")}" : "No")}- Recovery Partition Size: {diskZero.recEnvSize} MB\n");
+                                        DebugWrite($"Disk 0 settings:\n\n\t- Partition Style: {diskZero.partStyle.ToString()}\n\t- Install Recovery Environment? {(diskZero.recoveryEnvironment != DiskZeroSettings.RecoveryEnvironmentMode.None ? $"Yes\n\t\t- Location: {diskZero.recoveryEnvironment.ToString()}\n\t{(diskZero.partStyle == DiskZeroSettings.PartitionStyle.GPT ? $"- EFI System Partition Size: {diskZero.ESPSize} MB\n\t" : "")}" : "No")}- Recovery Partition Size: {diskZero.recEnvSize} MB\n", (debugMode | Debugger.IsAttached));
                                     }
                                     catch (Exception ex)
                                     {
                                         Console.WriteLine("WARNING: Could not parse partition settings file. Continuing with Interactive...");
                                         if (Debugger.IsAttached)
                                             Debugger.Break();
-                                        DebugWrite($"Error Message - {ex.Message}");
+                                        DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                         partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
                                     }
                                 }
@@ -287,14 +288,14 @@ namespace UnattendGen
                                     {
                                         DiskPartSettings? diskPart = DiskPartSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DiskPartSettings.xml"));
                                         generator.diskPartSettings = diskPart;
-                                        DebugWrite($"DiskPart settings:\n\n\t- Script file: \"{diskPart.scriptFile}\". Contents:\n\n{File.ReadAllText(diskPart.scriptFile)}\n\n\t- Automatic configuration? {(diskPart.automaticInstall ? "Yes" : $"No\n\t\t- Disk: {diskPart.diskNum}\n\t\t- Partition: {diskPart.partNum}")}\n");
+                                        DebugWrite($"DiskPart settings:\n\n\t- Script file: \"{diskPart.scriptFile}\". Contents:\n\n{File.ReadAllText(diskPart.scriptFile)}\n\n\t- Automatic configuration? {(diskPart.automaticInstall ? "Yes" : $"No\n\t\t- Disk: {diskPart.diskNum}\n\t\t- Partition: {diskPart.partNum}")}\n", (debugMode | Debugger.IsAttached));
                                     }
                                     catch (Exception ex)
                                     {
                                         Console.WriteLine("WARNING: Could not parse partition settings file. Continuing with Interactive...");
                                         if (Debugger.IsAttached)
                                             Debugger.Break();
-                                        DebugWrite($"Error Message - {ex.Message}");
+                                        DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                         partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
                                     }
                                 }
@@ -320,14 +321,14 @@ namespace UnattendGen
                             {
                                 SystemEdition edition = SystemEdition.LoadSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "edition.xml"));
                                 generator.genericEdition = edition;
-                                DebugWrite($"Edition settings:\n\n\t- Edition ID: {edition.Id}\n\t- Edition name: {edition.DisplayName}\n\t- Product key: {edition.ProductKey}\n");
+                                DebugWrite($"Edition settings:\n\n\t- Edition ID: {edition.Id}\n\t- Edition name: {edition.DisplayName}\n\t- Product key: {edition.ProductKey}\n", (debugMode | Debugger.IsAttached));
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine("WARNING: Could not parse edition settings file. Continuing with default Pro edition...");
                                 if (Debugger.IsAttached)
                                     Debugger.Break();
-                                DebugWrite($"Error Message - {ex.Message}");
+                                DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                 generator.genericEdition = defaultEdition;
                             }
                         }
@@ -342,7 +343,7 @@ namespace UnattendGen
                         Console.WriteLine("INFO: The unattended answer file will not use a generic product key");
                         genericChosen = false;
                         string key = cmdLine.Replace("/customkey=", "").Trim();
-                        DebugWrite($"Edition settings:\n\n\t- Product key: {key}\n");
+                        DebugWrite($"Edition settings:\n\n\t- Product key: {key}\n", (debugMode | Debugger.IsAttached));
                         generator.customKey = key;
                     }
                     else if (cmdLine.StartsWith("/customusers", StringComparison.OrdinalIgnoreCase))
@@ -355,25 +356,29 @@ namespace UnattendGen
                             {
                                 List<UserAccount> accounts = UserAccount.LoadAccounts(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "userAccounts.xml"));
                                 generator.accounts = accounts;
-                                DebugWrite($"User accounts:\n");
-                                if (accounts.Count > 0)
+                                DebugWrite($"User accounts:\n", (debugMode | Debugger.IsAttached));
+                                if (debugMode | Debugger.IsAttached)
                                 {
-                                    foreach (UserAccount account in accounts)
+                                    if (accounts.Count > 0)
                                     {
-                                        Console.WriteLine($"\t- User {accounts.IndexOf(account) + 1}:");
-                                        Console.WriteLine($"\t\t- Enabled? {(account.Enabled ? "Yes" : "No")}");
-                                        if (account.Enabled)
+                                        foreach (UserAccount account in accounts)
                                         {
-                                            Console.WriteLine($"\t\t- Name: {account.Name}");
-                                            Console.WriteLine($"\t\t- Password: {account.Password}");
-                                            Console.WriteLine($"\t\t- Group: {account.Group switch { 
-                                                UserAccount.UserGroup.Administrators => "Administrators",
-                                                UserAccount.UserGroup.Users => "Users",
-                                                _ => "Users"
-                                            }}");
+                                            Console.WriteLine($"\t- User {accounts.IndexOf(account) + 1}:");
+                                            Console.WriteLine($"\t\t- Enabled? {(account.Enabled ? "Yes" : "No")}");
+                                            if (account.Enabled)
+                                            {
+                                                Console.WriteLine($"\t\t- Name: {account.Name}");
+                                                Console.WriteLine($"\t\t- Password: {account.Password}");
+                                                Console.WriteLine($"\t\t- Group: {account.Group switch
+                                                {
+                                                    UserAccount.UserGroup.Administrators => "Administrators",
+                                                    UserAccount.UserGroup.Users => "Users",
+                                                    _ => "Users"
+                                                }}");
+                                            }
                                         }
+                                        Console.WriteLine();
                                     }
-                                    Console.WriteLine();
                                 }
                             }
                             catch (Exception ex)
@@ -381,7 +386,7 @@ namespace UnattendGen
                                 Console.WriteLine("WARNING: Could not parse user accounts file. Continuing with Interactive Settings...");
                                 if (Debugger.IsAttached)
                                     Debugger.Break();
-                                DebugWrite($"Error Message - {ex.Message}");
+                                DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                 accountsInteractive = true;
                             }
                         }
@@ -399,7 +404,7 @@ namespace UnattendGen
                             switch (cmdLine.Replace("/autologon=", "").Trim())
                             {
                                 case "firstadmin":
-                                    DebugWrite("Setting auto-logon to first admin...");
+                                    DebugWrite("Setting auto-logon to first admin...", (debugMode | Debugger.IsAttached));
                                     logonSettings.logonMode = AutoLogon.AutoLogonMode.FirstAdmin;
                                     if (generator.accounts.Count > 0)
                                     {
@@ -407,14 +412,14 @@ namespace UnattendGen
                                         {
                                             if (account.Group == UserAccount.UserGroup.Administrators)
                                             {
-                                                DebugWrite($"First Admin in Accounts list: {account.Name}");
+                                                DebugWrite($"First Admin in Accounts list: {account.Name}", (debugMode | Debugger.IsAttached));
                                                 break;
                                             }
                                         }
                                     }
                                     break;
                                 case "builtinadmin":
-                                    DebugWrite("Setting auto-logon to Windows admin...");
+                                    DebugWrite("Setting auto-logon to Windows admin...", (debugMode | Debugger.IsAttached));
                                     if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "autoLogon.xml")))
                                     {
                                         try
@@ -427,7 +432,7 @@ namespace UnattendGen
                                             Console.WriteLine("WARNING: Could not parse auto-logon settings file. Disabling auto-logon...");
                                             if (Debugger.IsAttached)
                                                 Debugger.Break();
-                                            DebugWrite($"Error Message - {ex.Message}");
+                                            DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                             logonSettings.logonMode = AutoLogon.AutoLogonMode.None;
                                         }
                                     }
@@ -446,7 +451,7 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("/b64obscure", StringComparison.OrdinalIgnoreCase))
                     {
-                        DebugWrite("User passwords will be obscured with Base64");
+                        DebugWrite("User passwords will be obscured with Base64", (debugMode | Debugger.IsAttached));
                         generator.Base64Obscure = true;
                     }
                     else if (cmdLine.StartsWith("/pwExpire", StringComparison.OrdinalIgnoreCase))
@@ -455,7 +460,7 @@ namespace UnattendGen
                         {
                             Console.WriteLine("INFO: Configuring password expiration settings...");
                             generator.ExpirationDays = Convert.ToInt32(cmdLine.Replace("/pwExpire=", "").Trim());
-                            DebugWrite($"Password expiration: {generator.ExpirationDays} day(s)");
+                            DebugWrite($"Password expiration: {generator.ExpirationDays} day(s)", (debugMode | Debugger.IsAttached));
                         }
                         catch
                         {
@@ -475,14 +480,14 @@ namespace UnattendGen
                                     try
                                     {
                                         lockdown = AccountLockdown.GetAccountLockdown(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockDown.xml"));
-                                        DebugWrite($"Account Lockdown Settings:\n\n\tAfter {lockdown.FailedAttempts} attempt(s) within {lockdown.TimeFrame} minute(s), unlock accounts automatically after {lockdown.AutoUnlock} minute(s)\n");
+                                        DebugWrite($"Account Lockdown Settings:\n\n\tAfter {lockdown.FailedAttempts} attempt(s) within {lockdown.TimeFrame} minute(s), unlock accounts automatically after {lockdown.AutoUnlock} minute(s)\n", (debugMode | Debugger.IsAttached));
                                     }
                                     catch (Exception ex)
                                     {
                                         Console.WriteLine("WARNING: Could not parse Account Lockdown settings file. Continuing with default options...");
                                         if (Debugger.IsAttached)
                                             Debugger.Break();
-                                        DebugWrite($"Error Message - {ex.Message}");
+                                        DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                         lockdown = defaultLockdown;
                                     }
                                 }
@@ -502,15 +507,15 @@ namespace UnattendGen
                         switch (cmdLine.Replace("/vm=", "").Trim())
                         {
                             case "vbox_gas":
-                                DebugWrite("VM Solution: VirtualBox Guest Additions");
+                                DebugWrite("VM Solution: VirtualBox Guest Additions", (debugMode | Debugger.IsAttached));
                                 vm = AnswerFileGenerator.VirtualMachineSolution.VBox_GAs;
                                 break;
                             case "vmware":
-                                DebugWrite("VM Solution: VMware Tools");
+                                DebugWrite("VM Solution: VMware Tools", (debugMode | Debugger.IsAttached));
                                 vm = AnswerFileGenerator.VirtualMachineSolution.VMware_Tools;
                                 break;
                             case "virtio":
-                                DebugWrite("VM Solution: VirtIO Guest Tools");
+                                DebugWrite("VM Solution: VirtIO Guest Tools", (debugMode | Debugger.IsAttached));
                                 vm = AnswerFileGenerator.VirtualMachineSolution.VirtIO;
                                 break;
                             default:
@@ -532,24 +537,28 @@ namespace UnattendGen
                                     {
                                         WirelessNetwork wireless = WirelessNetwork.LoadSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wireless.xml"));
                                         wirelessNetwork = wireless;
-                                        DebugWrite($"Wireless settings:\n");
-                                        Console.WriteLine($"\t- SSID: {wireless.SSID}");
-                                        Console.WriteLine($"\t- Password: {new string('*', wireless.Password.Length)} (hidden for your security)");
-                                        Console.WriteLine($"\t- Authentication mode: {wireless.Authentication switch { 
-                                            WirelessNetwork.AuthenticationProtocol.Open => "Open (most vulnerable)",
-                                            WirelessNetwork.AuthenticationProtocol.WPA2 => "WPA2-PSK",
-                                            WirelessNetwork.AuthenticationProtocol.WPA3 => "WPA3-SAE",
-                                            _ => "WPA2-PSK"
-                                        }}");
-                                        Console.WriteLine($"\t- Connect even if not broadcasting? {(wireless.NonBroadcast ? "Yes" : "No")}");
-                                        Console.WriteLine();
+                                        DebugWrite($"Wireless settings:\n", (debugMode | Debugger.IsAttached));
+                                        if (debugMode | Debugger.IsAttached)
+                                        {
+                                            Console.WriteLine($"\t- SSID: {wireless.SSID}");
+                                            Console.WriteLine($"\t- Password: {new string('*', wireless.Password.Length)} (hidden for your security)");
+                                            Console.WriteLine($"\t- Authentication mode: {wireless.Authentication switch
+                                            {
+                                                WirelessNetwork.AuthenticationProtocol.Open => "Open (most vulnerable)",
+                                                WirelessNetwork.AuthenticationProtocol.WPA2 => "WPA2-PSK",
+                                                WirelessNetwork.AuthenticationProtocol.WPA3 => "WPA3-SAE",
+                                                _ => "WPA2-PSK"
+                                            }}");
+                                            Console.WriteLine($"\t- Connect even if not broadcasting? {(wireless.NonBroadcast ? "Yes" : "No")}");
+                                            Console.WriteLine();
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
                                         Console.WriteLine("WARNING: Could not parse wireless settings file. Continuing with Interactive Settings...");
                                         if (Debugger.IsAttached)
                                             Debugger.Break();
-                                        DebugWrite($"Error Message - {ex.Message}");
+                                        DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                                         wirelessInteractive = true;
                                     }
                                 }
@@ -570,11 +579,11 @@ namespace UnattendGen
                         switch (cmdLine.Replace("/telem=", "").Trim())
                         {
                             case "yes":
-                                DebugWrite("Enabling system telemetry...");
+                                DebugWrite("Enabling system telemetry...", (debugMode | Debugger.IsAttached));
                                 telemetry = AnswerFileGenerator.SystemTelemetry.Yes;
                                 break;
                             case "no":
-                                DebugWrite("(Attempting to) disable system telemetry...");
+                                DebugWrite("(Attempting to) disable system telemetry...", (debugMode | Debugger.IsAttached));
                                 telemetry = AnswerFileGenerator.SystemTelemetry.No;
                                 break;
                             default:
@@ -583,8 +592,8 @@ namespace UnattendGen
                                 break;
                         }
                     }
-                    if (cmdLine != Assembly.GetExecutingAssembly().Location && debugMode)
-                        DebugWrite($"Successfully parsed command-line switch {cmdLine}");
+                    if (cmdLine != Assembly.GetExecutingAssembly().Location)
+                        DebugWrite($"Successfully parsed command-line switch {cmdLine}", (debugMode | Debugger.IsAttached));
                 }
             }
             generator.regionalInteractive = regionInteractive;

@@ -14,6 +14,12 @@ Write-Host "Expanding archives..."
 Expand-Archive -Path ".\unattendgen-sc-amd64.zip" -Destination ".\Tools\UnattendGen\SelfContained\amd64" -Force
 Expand-Archive -Path ".\unattendgen-sc-x86.zip" -Destination ".\Tools\UnattendGen\SelfContained\x86" -Force
 
+if ($?)
+{
+	New-Item -Path "$((Get-Location).Path)\DT" -ItemType File -Force | Out-Null
+	Set-ItemProperty -Path "$((Get-Location).Path)\DT" -Name Attributes -Value Hidden
+}
+
 Write-Host "Deleting temporary files..."
 Remove-Item -Path ".\unattendgen-sc-amd64.zip" -Force
 Remove-Item -Path ".\unattendgen-sc-x86.zip" -Force
