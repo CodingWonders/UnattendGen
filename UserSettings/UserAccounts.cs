@@ -51,6 +51,11 @@ namespace UnattendGen.UserSettings
                                     _ => false
                                 };
                                 account.Name = reader.GetAttribute("Name");
+                                if (account.Name.Length > 20)
+                                {
+                                    Console.WriteLine($"WARNING: Account name {account.Name} is over 20 characters long. Truncating to 20 characters...");
+                                    account.Name = account.Name.Substring(0, 20);
+                                }
                                 account.Password = reader.GetAttribute("Password");
                                 account.Group = reader.GetAttribute("Group") switch
                                 {
