@@ -7,8 +7,10 @@ param (
 [Net.ServicePointManager]::SecurityProtocol = "Tls12"
 
 Write-Host "Downloading self-contained UnattendGen..."
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/UnattendGen-x64--SelfContained.zip" -OutFile ".\unattendgen-sc-amd64.zip"
 Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/UnattendGen-x86--SelfContained.zip" -OutFile ".\unattendgen-sc-x86.zip"
+$ProgressPreference = 'Continue'
 
 Write-Host "Expanding archives..."
 Expand-Archive -Path ".\unattendgen-sc-amd64.zip" -Destination ".\Tools\UnattendGen\SelfContained\amd64" -Force
