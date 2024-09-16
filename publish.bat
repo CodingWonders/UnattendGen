@@ -30,8 +30,11 @@ echo Publishing regular binaries...
 
 :: Publish release for x86, amd64 and arm64
 dotnet publish -r:win-x86
+rd "bin\release\net8.0\win-x86\publish" /s /q
 dotnet publish -r:win-x64
+rd "bin\release\net8.0\win-x64\publish" /s /q
 dotnet publish -r:win-arm64
+rd "bin\release\net8.0\win-arm64\publish" /s /q
 
 echo Zipping regular binaries...
 powershell -ExecutionPolicy Bypass ".\RegularZip.ps1"
