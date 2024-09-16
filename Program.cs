@@ -85,7 +85,9 @@ namespace UnattendGen
                 "\tWireless settings:\n\n" +
                 "\t\t/wifi    \t\tConfigures wireless networking for the target system. Possible values: yes (configure settings with a wireless configuration file); no (skip configuration). Defaults to interactive if not set\n\n" +
                 "\tSystem telemetry:\n\n" +
-                "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set");
+                "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set\n\n" +
+                "\tCustom configuration:\n\n" +
+                "\t\t/customconfiguration\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
         }
 
         static async Task Main(string[] args)
@@ -141,6 +143,13 @@ namespace UnattendGen
 
             AnswerFileGenerator.SystemTelemetry telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
 
+            List<SystemComponent> defaultComponents = new List<SystemComponent>();
+            // Add Microsoft-Windows-Shell-Setup in oobeSystem pass. It's already filled in, but add it anyway
+            SystemComponent defaultComponent = new SystemComponent();
+            defaultComponent.Id = "Microsoft-Windows-Shell-Setup";
+            defaultComponent.Passes.Add(new SystemPass("oobeSystem"));
+            defaultComponents.Add(defaultComponent);
+
             Console.WriteLine($"UnattendGen{(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DT")) ? " for DISMTools" : "")}, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -148,6 +157,9 @@ namespace UnattendGen
             Console.WriteLine("SEE ATTACHED PROGRAM LICENSES FOR MORE INFORMATION REGARDING USE AND REDISTRIBUTION\n");
 
             var generator = new AnswerFileGenerator();
+
+            if (Environment.GetCommandLineArgs().Contains("/debug"))
+                debugMode = true;
 
             if (Environment.GetCommandLineArgs().Length >= 2)
             {
@@ -592,6 +604,47 @@ namespace UnattendGen
                                 break;
                         }
                     }
+                    else if (cmdLine.StartsWith("/customcomponents", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: Configuring custom components...");
+                        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "components.xml")))
+                        {
+                            try
+                            {
+                                List<SystemComponent> components = SystemComponent.LoadComponents(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "components.xml"));
+                                generator.SystemComponents = components;
+                                DebugWrite($"System components:\n", (debugMode | Debugger.IsAttached));
+                                if (debugMode | Debugger.IsAttached)
+                                {
+                                    if (components.Count > 0)
+                                    {
+                                        foreach (SystemComponent component in components)
+                                        {
+                                            Console.WriteLine($"\t- Component name: {component.Id}");
+                                            Console.WriteLine($"\t\t- Passes:");
+                                            foreach (SystemPass pass in component.Passes)
+                                            {
+                                                Console.WriteLine($"\t\t\t- \"{pass.Name}\"");
+                                            }
+                                        }
+                                    }
+                                    Console.WriteLine();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("WARNING: Could not parse system components file. Continuing without settings...");
+                                if (Debugger.IsAttached)
+                                    Debugger.Break();
+                                DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
+                                generator.SystemComponents = defaultComponents;
+                            }
+                        }
+                        else
+                        {
+                            generator.SystemComponents = defaultComponents;
+                        }
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}", (debugMode | Debugger.IsAttached));
                 }
@@ -700,6 +753,8 @@ namespace UnattendGen
 
         public SystemTelemetry Telemetry;
 
+        public List<SystemComponent>? SystemComponents = new List<SystemComponent>();
+
         public async Task GenerateAnswerFile(string targetPath)
         {
             // follow example for now, document settings for later DT integration
@@ -729,6 +784,32 @@ namespace UnattendGen
 
             ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
             architectures = architectures.Add(architecture);
+
+            var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
+            
+            foreach (SystemComponent component in SystemComponents)
+            {
+                var passSet = ImmutableSortedSet.CreateBuilder<Pass>();
+
+                foreach (SystemPass componentPass in component.Passes)
+                {
+                    passSet.Add(componentPass.Name switch
+                    {
+                        "offlineServicing" => Pass.offlineServicing,
+                        "windowsPE" => Pass.windowsPE,
+                        "generalize" => Pass.generalize,
+                        "specialize" => Pass.specialize,
+                        "auditSystem" => Pass.auditSystem,
+                        "auditUser" => Pass.auditUser,
+                        "oobeSystem" => Pass.oobeSystem,
+                        _ => Pass.oobeSystem        // Default to oobeSystem. This is the most unlikely case
+                    });
+
+                }
+
+                componentDictionary = componentDictionary.Add(component.Id, passSet.ToImmutable());
+
+            }
 
             UnattendGenerator generator = new();
             XmlDocument xml = generator.GenerateXml(
@@ -814,6 +895,7 @@ namespace UnattendGen
                         },
                         NonBroadcast: WirelessSettings.NonBroadcast),
                     ProcessorArchitectures = architectures,
+                    Components = componentDictionary,
                     ExpressSettings = Telemetry switch
                     {
                         SystemTelemetry.Interactive => ExpressSettingsMode.Interactive,
