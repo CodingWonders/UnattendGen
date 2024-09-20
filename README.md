@@ -99,7 +99,7 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
-| `/customcomponents` | Configures custom components using a configuration file If this switch is not specified, UnattendGen will use default configurations and passes |
+| `/customcomponents` | Configures custom components using a configuration file. If this switch is not specified, UnattendGen will use default configurations and passes |
 
 ### Configuration files
 
