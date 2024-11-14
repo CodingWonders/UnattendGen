@@ -824,7 +824,7 @@ namespace UnattendGen
                         LocaleAndKeyboard2: null,
                         LocaleAndKeyboard3: null,
                         GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
-                    AccountSettings = accountsInteractive ? new InteractiveAccountSettings() : new UnattendedAccountSettings(
+                    AccountSettings = accountsInteractive ? new InteractiveLocalAccountSettings() : new UnattendedAccountSettings(
                         accounts: userAccounts,
                         autoLogonSettings: autoLogonSettings.logonMode switch
                         {
