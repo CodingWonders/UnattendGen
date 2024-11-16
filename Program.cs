@@ -55,7 +55,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -75,6 +75,7 @@ namespace UnattendGen
                 "\t\t/generic\t\tSets generic edition settings using a configuration file. Defaults to Pro edition if not set\n" +
                 "\t\t/customkey\t\tSets a custom key, defined by <key> to be used for installation, which may or may not be valid\n\n" +
                 "\tUser settings:\n\n" +
+                "\t\t/msa     \t\tConfigures the target system to ask for a Microsoft account. No additional user account parameters need to be passed, or the system will not ask for the online account\n" +
                 "\t\t/customusers\t\tConfigures the users of the target system with a \"userAccounts.xml\" configuration file. Defaults to an interactive setup if not specified\n" +
                 "\t\t/autologon\t\tConfigures user automatic log-on settings. Possible values: firstadmin (first admin in account list); builtinadmin (built-in Windows admin account). Defaults to disabled auto log-on if not set\n" +
                 "\t\t/b64obscure\t\tObscures passwords with Base64\n" +
@@ -357,6 +358,11 @@ namespace UnattendGen
                         string key = cmdLine.Replace("/customkey=", "").Trim();
                         DebugWrite($"Edition settings:\n\n\t- Product key: {key}\n", (debugMode | Debugger.IsAttached));
                         generator.customKey = key;
+                    }
+                    else if (cmdLine.StartsWith("/msa", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DebugWrite("The system will ask you for a Microsoft account. 24H2 does not present ways to bypass this with bypassnro, unless you join a domain", (debugMode | Debugger.IsAttached));
+                        generator.msaInteractive = true;
                     }
                     else if (cmdLine.StartsWith("/customusers", StringComparison.OrdinalIgnoreCase))
                     {
@@ -733,6 +739,8 @@ namespace UnattendGen
 
         public bool accountsInteractive;
 
+        public bool msaInteractive;
+
         public List<UserAccount>? accounts;
 
         public AutoLogon? autoLogonSettings;
@@ -824,7 +832,7 @@ namespace UnattendGen
                         LocaleAndKeyboard2: null,
                         LocaleAndKeyboard3: null,
                         GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
-                    AccountSettings = accountsInteractive ? new InteractiveLocalAccountSettings() : new UnattendedAccountSettings(
+                    AccountSettings = accountsInteractive ? (msaInteractive ? new InteractiveMicrosoftAccountSettings() : new InteractiveLocalAccountSettings()) : new UnattendedAccountSettings(
                         accounts: userAccounts,
                         autoLogonSettings: autoLogonSettings.logonMode switch
                         {
