@@ -45,8 +45,10 @@ namespace UnattendGen.UserSettings
                                 List<String> passListTemp = new List<String>();
                                 passListTemp = passList.Split(new char[] { ',' }).ToList();
 
-                                List<string> knownPasses = new List<string>();
-                                knownPasses.AddRange(new string[] { "offlineServicing", "windowsPE", "generalize", "specialize", "auditSystem", "auditUser", "oobeSystem" });
+                                List<string> knownPasses =
+                                [
+                                    .. new string[] { "offlineServicing", "windowsPE", "generalize", "specialize", "auditSystem", "auditUser", "oobeSystem" },
+                                ];
 
                                 foreach (string pass in passListTemp)
                                 {
