@@ -14,7 +14,7 @@ This project uses Christoph Schneegans' unattended answer file generation librar
 When running the program with the `/?` argument, you will see the following usage pattern:
 
 ```
-UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] /customcomponents
+UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] /customcomponents
 ```
 
 When running the program with no arguments, it will generate a basic answer file with default settings. If you want to avoid this behavior and create your custom answer file, you will need to pass the appropriate switches.
@@ -37,7 +37,7 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
-| `/architecture` | Configures the system architecture to use with the unattended answer file. You can choose either of the following options: `x86` or `i386` for 32-bit systems (use therefore with Windows 10), `x64` or `amd64` for 64-bit systems; or `arm64` for ARM-based chips (usually found in single-board computers (SBCs)) (use with Windows on ARM only). If this switch is not passed, UnattendGen will default to `amd64` |
+| `/architecture` | Configures the system architecture to use with the unattended answer file. You can choose either of the following options: `x86` or `i386` for 32-bit systems (use therefore with Windows 10), `x64` or `amd64` for 64-bit systems; or `aarch64` or `arm64` for ARM-based chips (usually found in single-board computers (SBCs)) (use with Windows on ARM only). If this switch is not passed, UnattendGen will default to `amd64` |
 | `/LabConfig` | Configures registry keys that enable you to bypass the system requirement checks for Windows 11 Setup. If this switch is not passed, these settings are not configured. Otherwise, the target file must be used only on Windows 11 |
 | `/BypassNRO` | Configures registry keys that enable you to bypass the mandatory network connection setup of the Out-of-box Experience (OOBE) for Windows 11. If this switch is not passed, these settings are not configured. Otherwise, the target file must be used only on Windows 11. Also note that this may not work on version 24H2 |
 | `/computername` | Configures the name of the computer using the value defined in `<compName>`. If this switch is not passed, a random computer name will be chosen |
@@ -71,6 +71,7 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
+| `/msa` | Configures the target system to ask for a Microsoft account |
 | `/customusers` | Configures user accounts based on a configuration file. If this switch is not specified, UnattendGen will use interactive settings |
 | `/autologon` | Configures autologon settings. You can use either of the following options: `firstadmin` (Setup will use the first administrator account in the user configuration file), or `builtinadmin` (Setup will use the built-in Administrator account with the password defined in a configuration file). This switch requires `/customusers`, and, if not set, UnattendGen will disable autologon |
 | `/b64obscure` | Configures user passwords to be obscured with Base64. This switch requires `/customusers` |
