@@ -55,7 +55,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -63,7 +63,7 @@ namespace UnattendGen
                 "\tRegional settings:\n\n" +
                 "\t\t/regionfile\t\tConfigures regional settings given a XML file specified by <regionFile>. Defaults to Interactive regional settings if not set.\n\n" +
                 "\tBasic system settings:\n\n" +
-                "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); arm64 (Windows on ARM). Defaults to amd64 if not set\n" +
+                "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set\n" +
                 "\t\t/LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
                 "\t\t/BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
                 "\t\t/computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
@@ -221,6 +221,7 @@ namespace UnattendGen
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
                                 DebugWrite("Architecture: amd64", (debugMode | Debugger.IsAttached));
                                 break;
+                            case "aarch64":
                             case "arm64":
                                 generator.architecture = Schneegans.Unattend.ProcessorArchitecture.arm64;
                                 DebugWrite("Architecture: arm64", (debugMode | Debugger.IsAttached));
