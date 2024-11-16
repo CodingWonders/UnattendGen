@@ -756,7 +756,6 @@ namespace UnattendGen
 
         public async Task GenerateAnswerFile(string targetPath)
         {
-            // follow example for now, document settings for later DT integration
 
             ImmutableList<Account> userAccounts = ImmutableList<Account>.Empty;
             List<Account> accountList = new List<Account>();
