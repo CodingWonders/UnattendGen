@@ -16,6 +16,13 @@ namespace UnattendGen.UserSettings
 
         public List<SystemPass>? Passes = new List<SystemPass>();
 
+        public SystemComponent() { }
+
+        public SystemComponent(string? id)
+        {
+            Id = id;
+        }
+
         public static List<SystemComponent>? LoadComponents(string? filePath)
         {
             List<SystemComponent> componentList = new List<SystemComponent>();

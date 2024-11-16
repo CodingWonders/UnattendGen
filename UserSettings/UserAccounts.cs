@@ -93,6 +93,14 @@ namespace UnattendGen.UserSettings
 
         public AutoLogonMode logonMode;
 
+        public AutoLogon() { }
+
+        public AutoLogon(AutoLogonMode autoLogonMode, string adminPassword)
+        {
+            logonMode = autoLogonMode;
+            winAdminPass = adminPassword;
+        }
+
         // Built-in Admin Settings
 
         public string? winAdminPass;
@@ -137,6 +145,16 @@ namespace UnattendGen.UserSettings
         public int TimeFrame;
 
         public int AutoUnlock;
+
+        public AccountLockdown() { }
+
+        public AccountLockdown(bool lockdownEnabled, int lockdownFailedAttempts, int lockdownTimeFrame, int lockdownAutoUnlock)
+        {
+            Enabled = lockdownEnabled;
+            FailedAttempts = lockdownFailedAttempts;
+            TimeFrame = lockdownTimeFrame;
+            AutoUnlock = lockdownAutoUnlock;
+        }
 
         public static AccountLockdown? GetAccountLockdown(string filePath)
         {

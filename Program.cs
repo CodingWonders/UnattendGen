@@ -113,26 +113,17 @@ namespace UnattendGen
             AnswerFileGenerator.PartitionSettingsMode partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
 
             bool genericChosen = true;
-            SystemEdition defaultEdition = new SystemEdition();
-            defaultEdition.Id = "pro";
-            defaultEdition.DisplayName = "Pro";
-            defaultEdition.ProductKey = "VK7JG-NPHTM-C97JM-9MPGT-3V66T";
+            SystemEdition defaultEdition = new SystemEdition("pro", "Pro", "VK7JG-NPHTM-C97JM-9MPGT-3V66T");
 
             bool accountsInteractive = true;
 
-            AutoLogon defaultLogonSettings = new AutoLogon();
+            AutoLogon defaultLogonSettings = new AutoLogon(AutoLogon.AutoLogonMode.None, "");
             AutoLogon logonSettings = new AutoLogon();
-            defaultLogonSettings.logonMode = AutoLogon.AutoLogonMode.None;
-            defaultLogonSettings.winAdminPass = "";
 
             logonSettings = defaultLogonSettings;
 
-            AccountLockdown defaultLockdown = new AccountLockdown();
+            AccountLockdown defaultLockdown = new AccountLockdown(true, 10, 10, 10);
             AccountLockdown lockdown = new AccountLockdown();
-            defaultLockdown.Enabled = true;
-            defaultLockdown.FailedAttempts = 10;
-            defaultLockdown.TimeFrame = 10;
-            defaultLockdown.AutoUnlock = 10;
 
             lockdown = defaultLockdown;
 
@@ -146,8 +137,7 @@ namespace UnattendGen
 
             List<SystemComponent> defaultComponents = new List<SystemComponent>();
             // Add Microsoft-Windows-Shell-Setup in oobeSystem pass. It's already filled in, but add it anyway
-            SystemComponent defaultComponent = new SystemComponent();
-            defaultComponent.Id = "Microsoft-Windows-Shell-Setup";
+            SystemComponent defaultComponent = new SystemComponent("Microsoft-Windows-Shell-Setup");
             defaultComponent.Passes.Add(new SystemPass("oobeSystem"));
             defaultComponents.Add(defaultComponent);
 

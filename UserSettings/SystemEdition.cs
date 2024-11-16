@@ -18,6 +18,15 @@ namespace UnattendGen.UserSettings
 
         public string? ProductKey;
 
+        public SystemEdition() { }
+
+        public SystemEdition(string? id, string? displayName, string? productKey)
+        {
+            Id = id;
+            DisplayName = displayName;
+            ProductKey = productKey;
+        }
+
         public static SystemEdition? LoadSettings(string filePath)
         {
             SystemEdition edition = new SystemEdition();
