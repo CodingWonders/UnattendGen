@@ -6,4 +6,6 @@
     <UserAccount Enabled="1" Name="Mads Kristensen" Password="Test4" Group="Admins" />
     <UserAccount Enabled="1" Name="Bill Gates" Password="Test5" Group="Admins" />
     <UserAccount Enabled="1" Name="Steve Ballmer" Password="Test6" Group="Admins" />
+    <UserAccount Enabled="1" Name="Satya Nadella" Password="Test7" Group="Users" />
+    <UserAccount Enabled="1" Name="David William Plummer" Password="Test8" Group="Users" />
 </root>

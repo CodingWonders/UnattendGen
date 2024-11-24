@@ -27,6 +27,22 @@ namespace UnattendGen.UserSettings
 
         public UserGroup Group;
 
+        public UserAccount() 
+        {
+            Enabled = false;
+            Name = "";
+            Password = "";
+            Group = UserGroup.Users;
+        }
+
+        public UserAccount(bool enabled, string? name, string? password, UserGroup group)
+        {
+            Enabled = enabled;
+            Name = name;
+            Password = password;
+            Group = group;
+        }
+
         public static List<UserAccount>? LoadAccounts(string filePath)
         {
             List<UserAccount> accountList = new List<UserAccount>();
@@ -43,26 +59,30 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "UserAccount")
                             {
-                                UserAccount account = new UserAccount();
-                                account.Enabled = reader.GetAttribute("Enabled") switch
+                                int nameLength = reader.GetAttribute("Name").Length;
+
+                                UserAccount account = new UserAccount(reader.GetAttribute("Enabled") switch
+                                                                      {
+                                                                          "1" => true,
+                                                                          "0" => false,
+                                                                          _ => false
+                                                                      },
+                                                                      (reader.GetAttribute("Name").Length > 20 ?
+                                                                          reader.GetAttribute("Name").Substring(0, 20) :
+                                                                          reader.GetAttribute("Name")),
+                                                                      reader.GetAttribute("Password"),
+                                                                      reader.GetAttribute("Group") switch
+                                                                      {
+                                                                          "Admins" => UserGroup.Administrators,
+                                                                          "Users" => UserGroup.Users,
+                                                                          _ => UserGroup.Users
+                                                                      });
+
+
+                                if (nameLength > 20)
                                 {
-                                    "1" => true,
-                                    "0" => false,
-                                    _ => false
-                                };
-                                account.Name = reader.GetAttribute("Name");
-                                if (account.Name.Length > 20)
-                                {
-                                    Console.WriteLine($"WARNING: Account name {account.Name} is over 20 characters long. Truncating to 20 characters...");
-                                    account.Name = account.Name.Substring(0, 20);
+                                    Console.WriteLine($"WARNING: Account name \"{reader.GetAttribute("Name")}\" has been truncated to 20 characters because its length exceeds the limit.");
                                 }
-                                account.Password = reader.GetAttribute("Password");
-                                account.Group = reader.GetAttribute("Group") switch
-                                {
-                                    "Admins" => UserGroup.Administrators,
-                                    "Users" => UserGroup.Users,
-                                    _ => UserGroup.Users
-                                };
 
                                 accountList.Add(account);
                             }

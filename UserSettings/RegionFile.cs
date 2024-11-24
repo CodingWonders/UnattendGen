@@ -60,9 +60,7 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "GeoId")
                             {
-                                GeoIds geo = new GeoIds();
-                                geo.Id = reader.GetAttribute("Id");
-                                geo.DisplayName = reader.GetAttribute("DisplayName");
+                                GeoIds geo = new GeoIds(reader.GetAttribute("Id"), reader.GetAttribute("DisplayName"));
                                 geoList.Add(geo);
                             }
                         }
@@ -115,9 +113,7 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "ImageLanguage")
                             {
-                                ImageLanguages lang = new ImageLanguages();
-                                lang.Id = reader.GetAttribute("Id");
-                                lang.DisplayName = reader.GetAttribute("DisplayName");
+                                ImageLanguages lang = new ImageLanguages(reader.GetAttribute("Id"), reader.GetAttribute("DisplayName"));
                                 langList.Add(lang);
                             }
                         }
@@ -174,10 +170,9 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "KeyboardIdentifier")
                             {
-                                KeyboardIdentifiers keyboard = new KeyboardIdentifiers();
-                                keyboard.Id = reader.GetAttribute("Id");
-                                keyboard.DisplayName = reader.GetAttribute("DisplayName");
-                                keyboard.Type = reader.GetAttribute("Type");
+                                KeyboardIdentifiers keyboard = new KeyboardIdentifiers(reader.GetAttribute("Id"),
+                                                                                       reader.GetAttribute("DisplayName"),
+                                                                                       reader.GetAttribute("Type"));
                                 keyboardList.Add(keyboard);
                             }
                         }
@@ -232,9 +227,7 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "TimeOffset")
                             {
-                                TimeOffsets offset = new TimeOffsets();
-                                offset.Id = reader.GetAttribute("Id");
-                                offset.DisplayName = reader.GetAttribute("DisplayName");
+                                TimeOffsets offset = new TimeOffsets(reader.GetAttribute("Id"), reader.GetAttribute("DisplayName"));
                                 offsetList.Add(offset);
                             }
                         }
@@ -299,12 +292,11 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "UserLocale")
                             {
-                                UserLocales locale = new UserLocales();
-                                locale.Id = reader.GetAttribute("Id");
-                                locale.DisplayName = reader.GetAttribute("DisplayName");
-                                locale.LCID = reader.GetAttribute("LCID");
-                                locale.KeybId = reader.GetAttribute("KeyboardLayout");
-                                locale.GeoLoc = reader.GetAttribute("GeoLocation");
+                                UserLocales locale = new UserLocales(reader.GetAttribute("Id"),
+                                                                     reader.GetAttribute("DisplayName"),
+                                                                     reader.GetAttribute("LCID"),
+                                                                     reader.GetAttribute("KeyboardLayout"),
+                                                                     reader.GetAttribute("GeoLocation"));
                                 localeList.Add(locale);
                             }
                         }

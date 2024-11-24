@@ -44,9 +44,9 @@ namespace UnattendGen.UserSettings
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "Edition")
                             {
 
-                                edition.Id = reader.GetAttribute("Id");
-                                edition.DisplayName = reader.GetAttribute("DisplayName");
-                                edition.ProductKey = reader.GetAttribute("Key");
+                                edition = new SystemEdition(reader.GetAttribute("Id"),
+                                                            reader.GetAttribute("DisplayName"),
+                                                            reader.GetAttribute("Key"));
 
                             }
                         }

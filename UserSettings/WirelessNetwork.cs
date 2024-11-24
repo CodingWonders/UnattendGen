@@ -26,6 +26,22 @@ namespace UnattendGen.UserSettings
 
         public bool NonBroadcast;
 
+        public WirelessNetwork()
+        {
+            SSID = "";
+            Password = "";
+            Authentication = AuthenticationProtocol.WPA2;
+            NonBroadcast = false;
+        }
+
+        public WirelessNetwork(string? ssid, string? password, AuthenticationProtocol authProtocol, bool nonBroadcast)
+        {
+            SSID = ssid;
+            Password = password;
+            Authentication = authProtocol;
+            NonBroadcast = nonBroadcast;
+        }
+
         public static WirelessNetwork? LoadSettings(string filePath)
         {
             try
@@ -40,22 +56,21 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "WirelessNetwork")
                             {
-                                WirelessNetwork network = new WirelessNetwork();
-                                network.SSID = reader.GetAttribute("Name");
-                                network.Password = reader.GetAttribute("Password");
-                                network.Authentication = reader.GetAttribute("AuthMode") switch
-                                {
-                                    "Open" => AuthenticationProtocol.Open,
-                                    "WPA2" => AuthenticationProtocol.WPA2,
-                                    "WPA3" => AuthenticationProtocol.WPA3,
-                                    _ => AuthenticationProtocol.WPA2
-                                };
-                                network.NonBroadcast = reader.GetAttribute("NonBroadcast") switch
-                                {
-                                    "1" => true,
-                                    "0" => false,
-                                    _ => false
-                                };
+                                WirelessNetwork network = new WirelessNetwork(reader.GetAttribute("Name"),
+                                                                              reader.GetAttribute("Password"),
+                                                                              reader.GetAttribute("AuthMode") switch
+                                                                              {
+                                                                                  "Open" => AuthenticationProtocol.Open,
+                                                                                  "WPA2" => AuthenticationProtocol.WPA2,
+                                                                                  "WPA3" => AuthenticationProtocol.WPA3,
+                                                                                  _ => AuthenticationProtocol.WPA2
+                                                                              },
+                                                                              reader.GetAttribute("NonBroadcast") switch
+                                                                              {
+                                                                                  "1" => true,
+                                                                                  "0" => false,
+                                                                                  _ => false
+                                                                              });
 
                                 return network;
                             }

@@ -137,8 +137,9 @@ namespace UnattendGen
 
             List<SystemComponent> defaultComponents = new List<SystemComponent>();
             // Add Microsoft-Windows-Shell-Setup in oobeSystem pass. It's already filled in, but add it anyway
-            SystemComponent defaultComponent = new SystemComponent("Microsoft-Windows-Shell-Setup");
-            defaultComponent.Passes.Add(new SystemPass("oobeSystem"));
+            List<SystemPass> defaultPasses = new List<SystemPass>();
+            defaultPasses.Add(new SystemPass("oobeSystem"));
+            SystemComponent defaultComponent = new SystemComponent("Microsoft-Windows-Shell-Setup", defaultPasses);
             defaultComponents.Add(defaultComponent);
 
             Console.WriteLine($"UnattendGen{(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DT")) ? " for DISMTools" : "")}, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");

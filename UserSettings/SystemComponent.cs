@@ -20,7 +20,13 @@ namespace UnattendGen.UserSettings
 
         public SystemComponent(string? id)
         {
+            this.Id = id;
+        }
+
+        public SystemComponent(string? id, List<SystemPass>? passes)
+        {
             Id = id;
+            Passes = passes;
         }
 
         public static List<SystemComponent>? LoadComponents(string? filePath)
@@ -39,11 +45,11 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "Component")
                             {
-                                SystemComponent component = new SystemComponent();
-                                component.Id = reader.GetAttribute("Id");
                                 string passList = reader.GetAttribute("Passes");
                                 List<String> passListTemp = new List<String>();
                                 passListTemp = passList.Split(new char[] { ',' }).ToList();
+
+                                List<SystemPass> passes = new List<SystemPass>();
 
                                 List<string> knownPasses =
                                 [
@@ -57,8 +63,11 @@ namespace UnattendGen.UserSettings
                                         Debug.WriteLine($"Unknown pass \"{pass}\"");
                                         continue;
                                     }
-                                    component?.Passes.Add(new SystemPass(pass));
+                                    passes.Add(new SystemPass(pass));
                                 }
+
+                                SystemComponent component = new SystemComponent(reader.GetAttribute("Id"), passes);
+
                                 componentList.Add(component);
                             }
                         }
