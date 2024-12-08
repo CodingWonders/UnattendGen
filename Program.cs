@@ -21,7 +21,7 @@ namespace UnattendGen
             }
             else
             {
-                return $"{start.ToString()} - {current.ToString()}";
+                return $"{start.ToString()}-{current.ToString()}";
             }
         }
 
@@ -55,7 +55,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -80,7 +80,7 @@ namespace UnattendGen
                 "\t\t/autologon\t\tConfigures user automatic log-on settings. Possible values: firstadmin (first admin in account list); builtinadmin (built-in Windows admin account). Defaults to disabled auto log-on if not set\n" +
                 "\t\t/b64obscure\t\tObscures passwords with Base64\n" +
                 "\t\t/pwExpire\t\tConfigures password expiration settings (not recommended by NIST) given the value defined in <days>. Defaults to no password expiration if not set\n" +
-                "\t\t/lockdown\t\tConfigures account lockdown settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
+                "\t\t/lockout\t\tConfigures account lockout settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
                 "\tVirtual Machine Support:\n\n" +
                 "\t\t/vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools). Defaults to no VM support if not set\n\n" +
                 "\tWireless settings:\n\n" +
@@ -88,7 +88,7 @@ namespace UnattendGen
                 "\tSystem telemetry:\n\n" +
                 "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set\n\n" +
                 "\tCustom configuration:\n\n" +
-                "\t\t/customconfiguration\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
+                "\t\t/customcomponents\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
         }
 
         static async Task Main(string[] args)
@@ -122,10 +122,10 @@ namespace UnattendGen
 
             logonSettings = defaultLogonSettings;
 
-            AccountLockdown defaultLockdown = new AccountLockdown(true, 10, 10, 10);
-            AccountLockdown lockdown = new AccountLockdown();
+            AccountLockout defaultlockout = new AccountLockout(true, 10, 10, 10);
+            AccountLockout lockout = new AccountLockout();
 
-            lockdown = defaultLockdown;
+            lockout = defaultlockout;
 
             AnswerFileGenerator.VirtualMachineSolution vm = AnswerFileGenerator.VirtualMachineSolution.No;
 
@@ -477,34 +477,34 @@ namespace UnattendGen
                             generator.ExpirationDays = 0;
                         }
                     }
-                    else if (cmdLine.StartsWith("/lockdown", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("/lockout", StringComparison.OrdinalIgnoreCase))
                     {
-                        switch (cmdLine.Replace("/lockdown=", "").Trim())
+                        switch (cmdLine.Replace("/lockout=", "").Trim())
                         {
                             case "yes":
-                                Console.WriteLine("INFO: Enforcing Account Lockdown policy...");
-                                lockdown.Enabled = true;
-                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockDown.xml")))
+                                Console.WriteLine("INFO: Enforcing Account Lockout policy...");
+                                lockout.Enabled = true;
+                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockout.xml")))
                                 {
-                                    Console.WriteLine("INFO: Lockdown policy file detected. Reading settings...");
+                                    Console.WriteLine("INFO: Lockout policy file detected. Reading settings...");
                                     try
                                     {
-                                        lockdown = AccountLockdown.GetAccountLockdown(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockDown.xml"));
-                                        DebugWrite($"Account Lockdown Settings:\n\n\tAfter {lockdown.FailedAttempts} attempt(s) within {lockdown.TimeFrame} minute(s), unlock accounts automatically after {lockdown.AutoUnlock} minute(s)\n", (debugMode | Debugger.IsAttached));
+                                        lockout = AccountLockout.GetAccountLockout(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lockout.xml"));
+                                        DebugWrite($"Account Lockout Settings:\n\n\tAfter {lockout.FailedAttempts} attempt(s) within {lockout.TimeFrame} minute(s), unlock accounts automatically after {lockout.AutoUnlock} minute(s)\n", (debugMode | Debugger.IsAttached));
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine("WARNING: Could not parse Account Lockdown settings file. Continuing with default options...");
+                                        Console.WriteLine("WARNING: Could not parse Account Lockout settings file. Continuing with default options...");
                                         if (Debugger.IsAttached)
                                             Debugger.Break();
                                         DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
-                                        lockdown = defaultLockdown;
+                                        lockout = defaultlockout;
                                     }
                                 }
                                 break;
                             case "no":
-                                Console.WriteLine("INFO: Disabling Account Lockdown policy. User accounts may be easier to penetrate into with brute-force attacks");
-                                lockdown.Enabled = false;
+                                Console.WriteLine("INFO: Disabling Account Lockout policy. User accounts may be easier to penetrate into with brute-force attacks");
+                                lockout.Enabled = false;
                                 break;
                             default:
 
@@ -655,7 +655,7 @@ namespace UnattendGen
             generator.partitionSettings = partition;
             generator.editionGenericChosen = genericChosen;
             generator.autoLogonSettings = logonSettings;
-            generator.lockdown = lockdown;
+            generator.lockout = lockout;
             generator.virtualMachine = vm;
             generator.WirelessInteractive = wirelessInteractive;
             generator.WirelessSkip = wirelessSkip;
@@ -741,7 +741,7 @@ namespace UnattendGen
 
         public int ExpirationDays = 0;
 
-        public AccountLockdown? lockdown;
+        public AccountLockout? lockout;
 
         public VirtualMachineSolution virtualMachine;
 
@@ -871,10 +871,10 @@ namespace UnattendGen
                             productKey: genericEdition.ProductKey,
                             visible: true)) : new DirectEditionSettings(
                                 productKey: customKey),
-                    LockoutSettings = lockdown.Enabled ? new CustomLockoutSettings(
-                        lockoutThreshold: lockdown.FailedAttempts,
-                        lockoutWindow: lockdown.TimeFrame,
-                        lockoutDuration: lockdown.AutoUnlock) : new DisableLockoutSettings(),
+                    LockoutSettings = lockout.Enabled ? new CustomLockoutSettings(
+                        lockoutThreshold: lockout.FailedAttempts,
+                        lockoutWindow: lockout.TimeFrame,
+                        lockoutDuration: lockout.AutoUnlock) : new DisableLockoutSettings(),
                     PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
                         maxAge: ExpirationDays)),
                     ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(

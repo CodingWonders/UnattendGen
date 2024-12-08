@@ -155,7 +155,7 @@ namespace UnattendGen.UserSettings
         }
     }
 
-    public class AccountLockdown
+    public class AccountLockout
     {
 
         public bool Enabled;
@@ -166,17 +166,17 @@ namespace UnattendGen.UserSettings
 
         public int AutoUnlock;
 
-        public AccountLockdown() { }
+        public AccountLockout() { }
 
-        public AccountLockdown(bool lockdownEnabled, int lockdownFailedAttempts, int lockdownTimeFrame, int lockdownAutoUnlock)
+        public AccountLockout(bool lockoutEnabled, int lockoutFailedAttempts, int lockoutTimeFrame, int lockoutAutoUnlock)
         {
-            Enabled = lockdownEnabled;
-            FailedAttempts = lockdownFailedAttempts;
-            TimeFrame = lockdownTimeFrame;
-            AutoUnlock = lockdownAutoUnlock;
+            Enabled = lockoutEnabled;
+            FailedAttempts = lockoutFailedAttempts;
+            TimeFrame = lockoutTimeFrame;
+            AutoUnlock = lockoutAutoUnlock;
         }
 
-        public static AccountLockdown? GetAccountLockdown(string filePath)
+        public static AccountLockout? GetAccountLockout(string filePath)
         {
             try
             {
@@ -188,21 +188,21 @@ namespace UnattendGen.UserSettings
                     {
                         while (reader.Read())
                         {
-                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "AccountLockdown")
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "AccountLockout")
                             {
-                                AccountLockdown lockdown = new AccountLockdown();
-                                lockdown.Enabled = true;
-                                lockdown.FailedAttempts = Convert.ToInt32(reader.GetAttribute("FailedAttempts"));
-                                lockdown.TimeFrame = Convert.ToInt32(reader.GetAttribute("Timeframe"));
-                                lockdown.AutoUnlock = Convert.ToInt32(reader.GetAttribute("AutoUnlock"));
+                                AccountLockout lockout = new AccountLockout();
+                                lockout.Enabled = true;
+                                lockout.FailedAttempts = Convert.ToInt32(reader.GetAttribute("FailedAttempts"));
+                                lockout.TimeFrame = Convert.ToInt32(reader.GetAttribute("Timeframe"));
+                                lockout.AutoUnlock = Convert.ToInt32(reader.GetAttribute("AutoUnlock"));
 
-                                if (lockdown.TimeFrame > lockdown.AutoUnlock)
+                                if (lockout.TimeFrame > lockout.AutoUnlock)
                                 {
                                     Console.WriteLine($"WARNING: Timeframe is higher than duration, making it equal...");
-                                    lockdown.TimeFrame = lockdown.AutoUnlock;
+                                    lockout.TimeFrame = lockout.AutoUnlock;
                                 }
 
-                                return lockdown;
+                                return lockout;
                             }
                         }
                     }

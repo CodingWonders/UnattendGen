@@ -14,7 +14,7 @@ This project uses Christoph Schneegans' unattended answer file generation librar
 When running the program with the `/?` argument, you will see the following usage pattern:
 
 ```
-UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockdown={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] /customcomponents
+UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] /customcomponents
 ```
 
 When running the program with no arguments, it will generate a basic answer file with default settings. If you want to avoid this behavior and create your custom answer file, you will need to pass the appropriate switches.
@@ -76,7 +76,7 @@ When running the program with no arguments, it will generate a basic answer file
 | `/autologon` | Configures autologon settings. You can use either of the following options: `firstadmin` (Setup will use the first administrator account in the user configuration file), or `builtinadmin` (Setup will use the built-in Administrator account with the password defined in a configuration file). This switch requires `/customusers`, and, if not set, UnattendGen will disable autologon |
 | `/b64obscure` | Configures user passwords to be obscured with Base64. This switch requires `/customusers` |
 | `/pwExpire` | Configures user passwords to be expired after an amount of days defined in `<days>` (this is not recommended by NIST) |
-| `/lockdown` | Configures Account Lockdown settings for users. You can specify either `yes` (to configure these settings with a configuration file) or `no` (to disable Lockdown policies - not recommended). If this switch is not passed, UnattendGen will use default policies |
+| `/lockout` | Configures Account Lockout settings for users. You can specify either `yes` (to configure these settings with a configuration file) or `no` (to disable Lockout policies - not recommended). If this switch is not passed, UnattendGen will use default policies |
 
 **Virtual Machine support**
 
@@ -112,7 +112,7 @@ You can look at example configuration files with the following links:
 - [Generic edition settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/edition.xml)
 - [User accounts](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/userAccounts.xml)
 - [Built-in Admin autologon settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/autoLogon.xml)
-- [Lockdown settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/lockDown.xml)
+- [Lockout settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/lockout.xml)
 - [Wireless settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/wireless.xml)
 - [Custom configuration](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/components.xml)
 

@@ -1,4 +1,0 @@
-<?xml version="1.0" ?>
-<root>
-    <AccountLockdown FailedAttempts="22" Timeframe="15" AutoUnlock="15" />
-</root>
