@@ -119,7 +119,7 @@ You can look at example configuration files with the following links:
 
 ## Building
 
-**Requirements:** [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.303-windows-x64-installer), Visual Studio 2022
+**Requirements:** [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-9.0.101-windows-x64-installer), Visual Studio 2022, version 17.12 or later
 
 ### Initializing submodules
 
