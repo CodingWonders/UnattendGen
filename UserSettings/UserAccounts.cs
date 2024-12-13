@@ -174,6 +174,12 @@ namespace UnattendGen.UserSettings
             FailedAttempts = lockoutFailedAttempts;
             TimeFrame = lockoutTimeFrame;
             AutoUnlock = lockoutAutoUnlock;
+
+            if (TimeFrame > AutoUnlock)
+            {
+                Console.WriteLine($"WARNING: Timeframe ({TimeFrame}) is higher than duration ({AutoUnlock}), making it equal");
+                TimeFrame = AutoUnlock;
+            }
         }
 
         public static AccountLockout? GetAccountLockout(string filePath)
@@ -198,7 +204,7 @@ namespace UnattendGen.UserSettings
 
                                 if (lockout.TimeFrame > lockout.AutoUnlock)
                                 {
-                                    Console.WriteLine($"WARNING: Timeframe is higher than duration, making it equal...");
+                                    Console.WriteLine($"WARNING: Timeframe ({lockout.TimeFrame}) is higher than duration ({lockout.AutoUnlock}), making it equal");
                                     lockout.TimeFrame = lockout.AutoUnlock;
                                 }
 
