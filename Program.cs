@@ -55,7 +55,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customcomponents]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -66,6 +66,7 @@ namespace UnattendGen
                 "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set\n" +
                 "\t\t/LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
                 "\t\t/BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
+                "\t\t/ConfigSet\t\tConfigures the target system to use a configuration set or distribution share. Said set or share needs to be present in the ISO you copy the answer file to beforehand\n" +
                 "\t\t/computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
                 "\tTime zone settings:\n\n" +
                 "\t\t/tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
@@ -233,6 +234,11 @@ namespace UnattendGen
                         DebugWrite("BypassNRO: True", (debugMode | Debugger.IsAttached));
                         Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
                         generator.SV_BypassNRO = true;
+                    }
+                    else if (cmdLine.StartsWith("/ConfigSet", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DebugWrite("Windows SIM Configuration Set: True", (debugMode | Debugger.IsAttached));
+                        generator.UseConfigSet = true;
                     }
                     else if (cmdLine.StartsWith("/computername", StringComparison.OrdinalIgnoreCase))
                     {
@@ -715,6 +721,8 @@ namespace UnattendGen
 
         public bool SV_BypassNRO;
 
+        public bool UseConfigSet;
+
         public bool timeZoneImplicit;
 
         public PartitionSettingsMode partitionSettings;
@@ -918,7 +926,8 @@ namespace UnattendGen
                     {
                         VirtualMachineSolution.VirtIO => true,
                         _ => false
-                    }
+                    },
+                    UseConfigurationSet = UseConfigSet
                 }
                 );
             try

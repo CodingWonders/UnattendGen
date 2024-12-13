@@ -83,37 +83,19 @@ namespace UnattendGen.UserSettings
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == "DiskZero")
                             {
-                                string? partStyle = reader.GetAttribute("PartitionStyle");
-                                string? recEnv = reader.GetAttribute("RecoveryEnvironment");
-
-                                switch (partStyle)
+                                diskZero.partStyle = reader.GetAttribute("PartitionStyle") switch
                                 {
-                                    case "MBR":
-                                        diskZero.partStyle = PartitionStyle.MBR;
-                                        break;
-                                    case "GPT":
-                                        diskZero.partStyle = PartitionStyle.GPT;
-                                        break;
-                                    default:
-                                        diskZero.partStyle = PartitionStyle.GPT;
-                                        break;
-                                }
-
-                                switch (recEnv)
+                                    "MBR" => PartitionStyle.MBR,
+                                    "GPT" => PartitionStyle.GPT,
+                                    _ => PartitionStyle.GPT
+                                };
+                                diskZero.recoveryEnvironment = reader.GetAttribute("RecoveryEnvironment") switch
                                 {
-                                    case "No":
-                                        diskZero.recoveryEnvironment = RecoveryEnvironmentMode.None;
-                                        break;
-                                    case "WinRE":
-                                        diskZero.recoveryEnvironment = RecoveryEnvironmentMode.Partition;
-                                        break;
-                                    case "Windows":
-                                        diskZero.recoveryEnvironment = RecoveryEnvironmentMode.Windows;
-                                        break;
-                                    default:
-                                        diskZero.recoveryEnvironment = RecoveryEnvironmentMode.Partition;
-                                        break;
-                                }
+                                    "No" => RecoveryEnvironmentMode.None,
+                                    "WinRE" => RecoveryEnvironmentMode.Partition,
+                                    "Windows" => RecoveryEnvironmentMode.Windows,
+                                    _ => RecoveryEnvironmentMode.Partition
+                                };
 
                                 diskZero.ESPSize = Convert.ToInt32(reader.GetAttribute("ESPSize"));
                                 diskZero.recEnvSize = Convert.ToInt32(reader.GetAttribute("RESize"));
