@@ -765,188 +765,202 @@ namespace UnattendGen
 
         public async Task GenerateAnswerFile(string targetPath)
         {
-
-            ImmutableList<Account> userAccounts = ImmutableList<Account>.Empty;
-            List<Account> accountList = new List<Account>();
-
-            if (null != accounts && accounts.Count > 0)
+            await Task.Run(() =>
             {
-                foreach (UserAccount account in accounts)
+                ImmutableList<Account> userAccounts = ImmutableList<Account>.Empty;
+                List<Account> accountList = new List<Account>();
+
+                if (null != accounts && accounts.Count > 0)
                 {
-                    if (!account.Enabled)
-                        continue;
-                    accountList.Add(new Account(
-                        name: account.Name,
-                        password: account.Password,
-                        group: account.Group switch
-                        {
-                            UserAccount.UserGroup.Administrators => "Administrators",
-                            UserAccount.UserGroup.Users => "Users",
-                            _ => "Users"
-                        }));
-                }
-            }
-
-            userAccounts = userAccounts.AddRange(accountList.ToArray());
-
-            ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
-            architectures = architectures.Add(architecture);
-
-            var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
-            
-            foreach (SystemComponent component in SystemComponents)
-            {
-                var passSet = ImmutableSortedSet.CreateBuilder<Pass>();
-
-                foreach (SystemPass componentPass in component.Passes)
-                {
-                    passSet.Add(componentPass.Name switch
+                    foreach (UserAccount account in accounts)
                     {
-                        "offlineServicing" => Pass.offlineServicing,
-                        "windowsPE" => Pass.windowsPE,
-                        "generalize" => Pass.generalize,
-                        "specialize" => Pass.specialize,
-                        "auditSystem" => Pass.auditSystem,
-                        "auditUser" => Pass.auditUser,
-                        "oobeSystem" => Pass.oobeSystem,
-                        _ => Pass.oobeSystem        // Default to oobeSystem. This is the most unlikely case
+                        if (!account.Enabled)
+                            continue;
+                        accountList.Add(new Account(
+                            name: account.Name,
+                            password: account.Password,
+                            group: account.Group switch
+                            {
+                                UserAccount.UserGroup.Administrators => "Administrators",
+                                UserAccount.UserGroup.Users => "Users",
+                                _ => "Users"
+                            }));
+                    }
+                }
+
+                userAccounts = userAccounts.AddRange(accountList.ToArray());
+
+                ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
+                architectures = architectures.Add(architecture);
+
+                var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
+
+                foreach (SystemComponent component in SystemComponents)
+                {
+                    var passSet = ImmutableSortedSet.CreateBuilder<Pass>();
+
+                    foreach (SystemPass componentPass in component.Passes)
+                    {
+                        passSet.Add(componentPass.Name switch
+                        {
+                            "offlineServicing" => Pass.offlineServicing,
+                            "windowsPE" => Pass.windowsPE,
+                            "generalize" => Pass.generalize,
+                            "specialize" => Pass.specialize,
+                            "auditSystem" => Pass.auditSystem,
+                            "auditUser" => Pass.auditUser,
+                            "oobeSystem" => Pass.oobeSystem,
+                            _ => Pass.oobeSystem        // Default to oobeSystem. This is the most unlikely case
+                        });
+
+                    }
+
+                    componentDictionary = componentDictionary.Add(component.Id, passSet.ToImmutable());
+
+                }
+
+                UnattendGenerator generator = new();
+                XmlDocument xml = generator.GenerateXml(
+                    Configuration.Default with
+                    {
+                        LanguageSettings = regionalInteractive ? new InteractiveLanguageSettings() : new UnattendedLanguageSettings(
+                            ImageLanguage: generator.Lookup<ImageLanguage>(regionalSettings.regionLang[0].Id),
+                            LocaleAndKeyboard: new LocaleAndKeyboard(
+                                generator.Lookup<UserLocale>(regionalSettings.regionLocales[0].Id),
+                                generator.Lookup<KeyboardIdentifier>(regionalSettings.regionKeys[0].Id)
+                            ),
+                            LocaleAndKeyboard2: null,
+                            LocaleAndKeyboard3: null,
+                            GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
+                        AccountSettings = accountsInteractive ? (msaInteractive ? new InteractiveMicrosoftAccountSettings() : new InteractiveLocalAccountSettings()) : new UnattendedAccountSettings(
+                            accounts: userAccounts,
+                            autoLogonSettings: autoLogonSettings.logonMode switch
+                            {
+                                AutoLogon.AutoLogonMode.None => new NoneAutoLogonSettings(),
+                                AutoLogon.AutoLogonMode.FirstAdmin => new OwnAutoLogonSettings(),
+                                AutoLogon.AutoLogonMode.BuiltInAdmin => new BuiltinAutoLogonSettings(
+                                    password: autoLogonSettings.winAdminPass),
+                                _ => new NoneAutoLogonSettings()
+                            },
+                            obscurePasswords: Base64Obscure),
+                        PartitionSettings = partitionSettings switch
+                        {
+                            PartitionSettingsMode.Interactive => new InteractivePartitionSettings(),
+                            PartitionSettingsMode.Unattended => new UnattendedPartitionSettings(
+                                PartitionLayout: diskZeroSettings.partStyle switch
+                                {
+                                    DiskZeroSettings.PartitionStyle.GPT => PartitionLayout.GPT,
+                                    DiskZeroSettings.PartitionStyle.MBR => PartitionLayout.MBR,
+                                    _ => PartitionLayout.GPT
+                                },
+                                RecoveryMode: diskZeroSettings.recoveryEnvironment switch
+                                {
+                                    DiskZeroSettings.RecoveryEnvironmentMode.None => RecoveryMode.None,
+                                    DiskZeroSettings.RecoveryEnvironmentMode.Partition => RecoveryMode.Partition,
+                                    DiskZeroSettings.RecoveryEnvironmentMode.Windows => RecoveryMode.Folder,
+                                    _ => RecoveryMode.Partition
+                                },
+                                EspSize: diskZeroSettings.ESPSize,
+                                RecoverySize: diskZeroSettings.recEnvSize),
+                            PartitionSettingsMode.Custom => new CustomPartitionSettings(
+                                Script: File.ReadAllText(diskPartSettings.scriptFile),
+                                InstallTo: diskPartSettings.automaticInstall switch
+                                {
+                                    true => new AvailableInstallToSettings(),
+                                    false => new CustomInstallToSettings(
+                                        installToDisk: diskPartSettings.diskNum,
+                                        installToPartition: diskPartSettings.partNum)
+                                }),
+                            _ => new InteractivePartitionSettings()
+                        },
+                        EditionSettings = editionGenericChosen ? new UnattendedEditionSettings(
+                            Edition: new WindowsEdition(
+                                id: genericEdition.Id,
+                                displayName: genericEdition.DisplayName,
+                                productKey: genericEdition.ProductKey,
+                                visible: true)) : new CustomEditionSettings(
+                                    productKey: customKey),
+                        LockoutSettings = lockout.Enabled ? new CustomLockoutSettings(
+                            lockoutThreshold: lockout.FailedAttempts,
+                            lockoutWindow: lockout.TimeFrame,
+                            lockoutDuration: lockout.AutoUnlock) : new DisableLockoutSettings(),
+                        PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
+                            maxAge: ExpirationDays)),
+                        ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
+                            name: computerName),
+                        TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
+                            TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
+                        WifiSettings = WirelessInteractive ? new InteractiveWifiSettings() : WirelessSkip ? new SkipWifiSettings() : new ParameterizedWifiSettings(
+                            Name: WirelessSettings.SSID,
+                            Password: WirelessSettings.Password,
+                            ConnectAutomatically: true,
+                            Authentication: WirelessSettings.Authentication switch
+                            {
+                                WirelessNetwork.AuthenticationProtocol.Open => WifiAuthentications.Open,
+                                WirelessNetwork.AuthenticationProtocol.WPA2 => WifiAuthentications.WPA2PSK,
+                                WirelessNetwork.AuthenticationProtocol.WPA3 => WifiAuthentications.WPA3SAE,
+                                _ => WifiAuthentications.WPA2PSK
+                            },
+                            NonBroadcast: WirelessSettings.NonBroadcast),
+                        ProcessorArchitectures = architectures,
+                        Components = componentDictionary,
+                        ExpressSettings = Telemetry switch
+                        {
+                            SystemTelemetry.Interactive => ExpressSettingsMode.Interactive,
+                            SystemTelemetry.No => ExpressSettingsMode.DisableAll,
+                            SystemTelemetry.Yes => ExpressSettingsMode.EnableAll,
+                            _ => ExpressSettingsMode.DisableAll
+                        },
+                        BypassRequirementsCheck = SV_LabConfig,
+                        BypassNetworkCheck = SV_BypassNRO,
+                        VBoxGuestAdditions = virtualMachine switch
+                        {
+                            VirtualMachineSolution.VBox_GAs => true,
+                            _ => false
+                        },
+                        VMwareTools = virtualMachine switch
+                        {
+                            VirtualMachineSolution.VMware_Tools => true,
+                            _ => false
+                        },
+                        VirtIoGuestTools = virtualMachine switch
+                        {
+                            VirtualMachineSolution.VirtIO => true,
+                            _ => false
+                        },
+                        UseConfigurationSet = UseConfigSet,
+                        DeleteWindowsOld = true
+                    }
+                    );
+                /*
+                 * The "DeleteWindowsOld" flag is set to true to automatically remove the "Windows.old" folder after OS installation, because the installer of 24H2, given Microsoft's laziness, is based on the installer from Windows 8, and thinks we are "upgrading" the computer's OS, even if we are making a clean installation. Any Panther-based installer will create this folder during an upgrade, but WE ARE NOT DEALING WITH UPGRADES HERE!!!
+                 * 
+                 * The old installer, which is also included in the Preinstallation Environment of 24H2, will not create this folder... COPILOT, STOP GIVING ME SUGGESTIONS FOR THIS COMMENT!!! (Gosh, I love this free plan...). *Sighs* It will not create that folder during clean installations of Windows Vista and newer. The WIM file simply doesn't contain this folder.
+                 * 
+                 * Microsoft, if you are reading this, please fix your OS. It's been over 10 years since Windows 8 was released, and you still haven't fixed your OS. It's not that hard to fix, you know...  - There goes Copilot's proactiveness, after some modifications from me...
+                 * 
+                 * I could let Copilot go wild with these comments. LMK if you want to see Copilot's potential in an empty C# file that only contains its comments.
+                 * 
+                 * Thanks! - CodingWonders, who had a lot of fun reading its suggestions (and Copilot insulting itself), even though they were useless fluff.
+                 */
+                try
+                {
+                    using XmlWriter writer = XmlWriter.Create(targetPath, new XmlWriterSettings()
+                    {
+                        Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                        CloseOutput = true,
+                        Indent = true,
+                        IndentChars = "\t",
+                        NewLineChars = "\r\n",
                     });
-
+                    xml.Save(writer);
+                    Console.WriteLine($"\nSUCCESS: Unattended answer file has been generated at \"{targetPath}\"");
                 }
-
-                componentDictionary = componentDictionary.Add(component.Id, passSet.ToImmutable());
-
-            }
-
-            UnattendGenerator generator = new();
-            XmlDocument xml = generator.GenerateXml(
-                Configuration.Default with
+                catch (Exception ex)
                 {
-                    LanguageSettings = regionalInteractive ? new InteractiveLanguageSettings() : new UnattendedLanguageSettings(
-                        ImageLanguage: generator.Lookup<ImageLanguage>(regionalSettings.regionLang[0].Id),
-                        LocaleAndKeyboard: new LocaleAndKeyboard(
-                            generator.Lookup<UserLocale>(regionalSettings.regionLocales[0].Id),
-                            generator.Lookup<KeyboardIdentifier>(regionalSettings.regionKeys[0].Id)
-                        ),
-                        LocaleAndKeyboard2: null,
-                        LocaleAndKeyboard3: null,
-                        GeoLocation: generator.Lookup<GeoLocation>(regionalSettings.regionGeo[0].Id)),
-                    AccountSettings = accountsInteractive ? (msaInteractive ? new InteractiveMicrosoftAccountSettings() : new InteractiveLocalAccountSettings()) : new UnattendedAccountSettings(
-                        accounts: userAccounts,
-                        autoLogonSettings: autoLogonSettings.logonMode switch
-                        {
-                            AutoLogon.AutoLogonMode.None => new NoneAutoLogonSettings(),
-                            AutoLogon.AutoLogonMode.FirstAdmin => new OwnAutoLogonSettings(),
-                            AutoLogon.AutoLogonMode.BuiltInAdmin => new BuiltinAutoLogonSettings(
-                                password: autoLogonSettings.winAdminPass),
-                            _ => new NoneAutoLogonSettings()
-                        },
-                        obscurePasswords: Base64Obscure),
-                    PartitionSettings = partitionSettings switch
-                    {
-                        PartitionSettingsMode.Interactive => new InteractivePartitionSettings(),
-                        PartitionSettingsMode.Unattended => new UnattendedPartitionSettings(
-                            PartitionLayout: diskZeroSettings.partStyle switch
-                            {
-                                DiskZeroSettings.PartitionStyle.GPT => PartitionLayout.GPT,
-                                DiskZeroSettings.PartitionStyle.MBR => PartitionLayout.MBR,
-                                _ => PartitionLayout.GPT
-                            },
-                            RecoveryMode: diskZeroSettings.recoveryEnvironment switch
-                            {
-                                DiskZeroSettings.RecoveryEnvironmentMode.None => RecoveryMode.None,
-                                DiskZeroSettings.RecoveryEnvironmentMode.Partition => RecoveryMode.Partition,
-                                DiskZeroSettings.RecoveryEnvironmentMode.Windows => RecoveryMode.Folder,
-                                _ => RecoveryMode.Partition
-                            },
-                            EspSize: diskZeroSettings.ESPSize,
-                            RecoverySize: diskZeroSettings.recEnvSize),
-                        PartitionSettingsMode.Custom => new CustomPartitionSettings(
-                            Script: File.ReadAllText(diskPartSettings.scriptFile),
-                            InstallTo: diskPartSettings.automaticInstall switch
-                            {
-                                true => new AvailableInstallToSettings(),
-                                false => new CustomInstallToSettings(
-                                    installToDisk: diskPartSettings.diskNum,
-                                    installToPartition: diskPartSettings.partNum)
-                            }),
-                        _ => new InteractivePartitionSettings()
-                    },
-                    EditionSettings = editionGenericChosen ? new UnattendedEditionSettings(
-                        Edition: new WindowsEdition(
-                            id: genericEdition.Id,
-                            displayName: genericEdition.DisplayName,
-                            productKey: genericEdition.ProductKey,
-                            visible: true)) : new DirectEditionSettings(
-                                productKey: customKey),
-                    LockoutSettings = lockout.Enabled ? new CustomLockoutSettings(
-                        lockoutThreshold: lockout.FailedAttempts,
-                        lockoutWindow: lockout.TimeFrame,
-                        lockoutDuration: lockout.AutoUnlock) : new DisableLockoutSettings(),
-                    PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
-                        maxAge: ExpirationDays)),
-                    ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
-                        name: computerName),
-                    TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
-                        TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
-                    WifiSettings = WirelessInteractive ? new InteractiveWifiSettings() : WirelessSkip ? new SkipWifiSettings() : new ParameterizedWifiSettings(
-                        Name: WirelessSettings.SSID,
-                        Password: WirelessSettings.Password,
-                        ConnectAutomatically: true,
-                        Authentication: WirelessSettings.Authentication switch
-                        {
-                            WirelessNetwork.AuthenticationProtocol.Open => WifiAuthentications.Open,
-                            WirelessNetwork.AuthenticationProtocol.WPA2 => WifiAuthentications.WPA2PSK,
-                            WirelessNetwork.AuthenticationProtocol.WPA3 => WifiAuthentications.WPA3SAE,
-                            _ => WifiAuthentications.WPA2PSK
-                        },
-                        NonBroadcast: WirelessSettings.NonBroadcast),
-                    ProcessorArchitectures = architectures,
-                    Components = componentDictionary,
-                    ExpressSettings = Telemetry switch
-                    {
-                        SystemTelemetry.Interactive => ExpressSettingsMode.Interactive,
-                        SystemTelemetry.No => ExpressSettingsMode.DisableAll,
-                        SystemTelemetry.Yes => ExpressSettingsMode.EnableAll,
-                        _ => ExpressSettingsMode.DisableAll
-                    },
-                    BypassRequirementsCheck = SV_LabConfig,
-                    BypassNetworkCheck = SV_BypassNRO,
-                    VBoxGuestAdditions = virtualMachine switch
-                    {
-                        VirtualMachineSolution.VBox_GAs => true,
-                        _ => false
-                    },
-                    VMwareTools = virtualMachine switch
-                    {
-                        VirtualMachineSolution.VMware_Tools => true,
-                        _ => false
-                    },
-                    VirtIoGuestTools = virtualMachine switch
-                    {
-                        VirtualMachineSolution.VirtIO => true,
-                        _ => false
-                    },
-                    UseConfigurationSet = UseConfigSet
+                    Console.WriteLine($"\nCould not generate unattended answer file due to the following error: {ex.Message}");
                 }
-                );
-            try
-            {
-                using XmlWriter writer = XmlWriter.Create(targetPath, new XmlWriterSettings()
-                {
-                    Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                    CloseOutput = true,
-                    Indent = true,
-                    IndentChars = "\t",
-                    NewLineChars = "\r\n",
-                });
-                xml.Save(writer);
-                Console.WriteLine($"\nSUCCESS: Unattended answer file has been generated at \"{targetPath}\"");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"\nCould not generate unattended answer file due to the following error: {ex.Message}");
-            }
+            });
         }
     }
 }
