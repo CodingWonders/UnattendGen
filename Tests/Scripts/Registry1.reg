@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_USERS\DefaultUser\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"ShowTaskViewButton"=dword:00000000

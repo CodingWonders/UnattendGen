@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
-    <AssemblyVersion>0.6.1.2511</AssemblyVersion>
-    <FileVersion>0.6.1.2511</FileVersion>
+    <AssemblyVersion>0.6.1.2512</AssemblyVersion>
+    <FileVersion>0.6.1.2512</FileVersion>
     <Copyright>(c) 2024-2025. CodingWonders Software, Christoph Schneegans</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -26,7 +26,10 @@
   <ItemGroup>
     <ProjectReference Include="Library\UnattendGenerator.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Tests\Scripts\" />
+  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="SET TestSettings=0&#xD;&#xA;&#xD;&#xA;COPY /Y &quot;$(SolutionDir)LICENSE.txt&quot; &quot;$(TargetDir)LICENSE.txt&quot;&#xD;&#xA;COPY /Y &quot;$(SolutionDir)Library\LICENSE.txt&quot; &quot;$(TargetDir)Library-License.txt&quot;&#xD;&#xA;&#xD;&#xA;IF %25TestSettings%25 equ 1 (COPY /Y &quot;$(SolutionDir)Tests\*&quot; &quot;$(TargetDir)&quot;)" />
+    <Exec Command="SET TestSettings=0&#xD;&#xA;&#xD;&#xA;COPY /Y &quot;$(SolutionDir)LICENSE.txt&quot; &quot;$(TargetDir)LICENSE.txt&quot;&#xD;&#xA;COPY /Y &quot;$(SolutionDir)Library\LICENSE.txt&quot; &quot;$(TargetDir)Library-License.txt&quot;&#xD;&#xA;&#xD;&#xA;IF %25TestSettings%25 equ 1 (XCOPY &quot;$(SolutionDir)Tests\*&quot; &quot;$(TargetDir)&quot; /CEHYI)" />
   </Target>
 </Project>

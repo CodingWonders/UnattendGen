@@ -14,7 +14,7 @@ This project uses Christoph Schneegans' unattended answer file generation librar
 When running the program with the `/?` argument, you will see the following usage pattern:
 
 ```
-UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] /customcomponents
+UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]
 ```
 
 When running the program with no arguments, it will generate a basic answer file with default settings. If you want to avoid this behavior and create your custom answer file, you will need to pass the appropriate switches.
@@ -96,6 +96,13 @@ When running the program with no arguments, it will generate a basic answer file
 |:--:|:--|
 | `/telem` | Configures system telemetry settings. You can specify either `yes` (to enable telemetry) or `no` (to (attempt to) disable telemetry). If this switch is not specified, UnattendGen will use interactive settings |
 
+**Post-installation scripts**
+
+| Switch | Action |
+|:--:|:--|
+| `/customscripts` | Configures custom scripts given a `scripts.xml` file |
+| `/restartexplorer` | Configures the system to restart Windows Explorer after all scripts are complete |
+
 **Component configuration**
 
 | Switch | Action |
@@ -114,6 +121,7 @@ You can look at example configuration files with the following links:
 - [Built-in Admin autologon settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/autoLogon.xml)
 - [Lockout settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/lockout.xml)
 - [Wireless settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/wireless.xml)
+- [Post-installation scripts](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/scripts.xml)
 - [Custom configuration](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/components.xml)
 
 

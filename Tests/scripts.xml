@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+    <PostInstallScript ScriptContent="file:.\Scripts\script1.ps1" Stage="FirstLogon" />
+    <PostInstallScript ScriptContent="file:.\Scripts\script2.ps1" Stage="FirstTimeUserLogon" />
+    <PostInstallScript ScriptContent="Write-Host &quot;Hello. This runs during System Setup&quot;" Stage="System" />
+    <PostInstallScript ScriptContent="file:.\Scripts\Registry1.reg" Stage="NTUserHiveModify" />
+</root>

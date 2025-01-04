@@ -55,7 +55,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customcomponents]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -88,6 +88,9 @@ namespace UnattendGen
                 "\t\t/wifi    \t\tConfigures wireless networking for the target system. Possible values: yes (configure settings with a wireless configuration file); no (skip configuration). Defaults to interactive if not set\n\n" +
                 "\tSystem telemetry:\n\n" +
                 "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set\n\n" +
+                "\tPost-installation scripts:\n\n" +
+                "\t\t/customscripts\t\tConfigures post-installation scripts using a \"scripts.xml\" configuration file\n" +
+                "\t\t/restartexplorer\tRestarts File Explorer after running post-installation scripts\n\n" +
                 "\tCustom configuration:\n\n" +
                 "\t\t/customcomponents\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
         }
@@ -299,7 +302,7 @@ namespace UnattendGen
                                     {
                                         DiskPartSettings? diskPart = DiskPartSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DiskPartSettings.xml"));
                                         generator.diskPartSettings = diskPart;
-                                        DebugWrite($"DiskPart settings:\n\n\t- Script file: \"{diskPart.scriptFile}\". Contents:\n\n{File.ReadAllText(diskPart.scriptFile)}\n\n\t- Automatic configuration? {(diskPart.automaticInstall ? "Yes" : $"No\n\t\t- Disk: {diskPart.diskNum}\n\t\t- Partition: {diskPart.partNum}")}\n", (debugMode | Debugger.IsAttached));
+                                        DebugWrite($"DiskPart settings:\n\n\t- Script file: \"{diskPart.scriptFile}\". Contents:\n\n\t\t{File.ReadAllText(diskPart.scriptFile).Replace("\n", "\n\t\t").Trim()}\n\n\t- Automatic configuration? {(diskPart.automaticInstall ? "Yes" : $"No\n\t\t- Disk: {diskPart.diskNum}\n\t\t- Partition: {diskPart.partNum}")}\n", (debugMode | Debugger.IsAttached));
                                     }
                                     catch (Exception ex)
                                     {
@@ -409,7 +412,7 @@ namespace UnattendGen
                         else
                         {
                             Console.WriteLine("WARNING: User accounts file does not exist. Continuing with Interactive Settings...");
-                            accountsInteractive = true;                            
+                            accountsInteractive = true;
                         }
                     }
                     else if (cmdLine.StartsWith("/autologon", StringComparison.OrdinalIgnoreCase))
@@ -536,7 +539,7 @@ namespace UnattendGen
                                 break;
                             default:
                                 Console.WriteLine($"WARNING: Unknown VM solution: {cmdLine.Replace("/vm=", "").Trim()}. Continuing without VM support...");
-                                break;                                
+                                break;
                         }
                     }
                     else if (cmdLine.StartsWith("/wifi", StringComparison.OrdinalIgnoreCase))
@@ -581,7 +584,7 @@ namespace UnattendGen
                                 else
                                 {
                                     Console.WriteLine("WARNING: Wireless settings file does not exist. Continuing with Interactive Settings...");
-                                    wirelessInteractive = true;                            
+                                    wirelessInteractive = true;
                                 }
                                 break;
                             case "no":
@@ -607,6 +610,60 @@ namespace UnattendGen
                                 telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
                                 break;
                         }
+                    }
+                    else if (cmdLine.StartsWith("/customscripts", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: Configuring post-installation scripts...");
+                        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scripts.xml")))
+                        {
+                            try
+                            {
+                                List<PostInstallScript> scripts = PostInstallScript.LoadScripts(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scripts.xml"));
+                                generator.PostInstallScripts = scripts;
+                                DebugWrite($"Post-installation scripts:\n", (debugMode | Debugger.IsAttached));
+                                if (debugMode | Debugger.IsAttached)
+                                {
+                                    if (scripts.Count > 0)
+                                    {
+                                        foreach (PostInstallScript script in scripts)
+                                        {
+                                            Console.WriteLine("--- Post-installation script:\n");
+
+                                            Console.WriteLine($"- Contents: \n\n\t{script.ScriptContent.Replace("\n", "\n\t").Trim()}\n");
+                                            Console.WriteLine($"- When to apply: {script.Stage switch
+                                            {
+                                                PostInstallScript.StageContext.System => "during system setup",
+                                                PostInstallScript.StageContext.FirstLogon => "when the first user logs on",
+                                                PostInstallScript.StageContext.FirstTimeUserLogon => "when a user logs on for the first time",
+                                                PostInstallScript.StageContext.NTUserHiveModify => "during system setup - this modifies NTUSER.DAT",
+                                                _ => "Invalid entry"
+                                            }}");
+
+                                            Console.WriteLine();
+
+                                        }
+                                    }
+                                    Console.WriteLine();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("WARNING: Could not parse post-installation scripts file. Continuing without settings...");
+                                if (Debugger.IsAttached)
+                                    Debugger.Break();
+                                DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
+                                generator.PostInstallScripts = new List<PostInstallScript>();
+                            }
+                        }
+                        else
+                        {
+                            generator.PostInstallScripts = new List<PostInstallScript>();
+                        }
+                    }
+                    else if (cmdLine.StartsWith("/restartexplorer", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DebugWrite("File Explorer will be restarted after running post-installation scripts...", (debugMode | Debugger.IsAttached));
+                        generator.RestartExplorer = true;
                     }
                     else if (cmdLine.StartsWith("/customcomponents", StringComparison.OrdinalIgnoreCase))
                     {
@@ -761,6 +818,10 @@ namespace UnattendGen
 
         public SystemTelemetry Telemetry;
 
+        public List<PostInstallScript>? PostInstallScripts = new List<PostInstallScript>();
+
+        public bool RestartExplorer;
+
         public List<SystemComponent>? SystemComponents = new List<SystemComponent>();
 
         public async Task GenerateAnswerFile(string targetPath)
@@ -817,6 +878,33 @@ namespace UnattendGen
 
                     componentDictionary = componentDictionary.Add(component.Id, passSet.ToImmutable());
 
+                }
+
+                Script[] scripts = [];
+
+                if (PostInstallScripts.Count > 0)
+                {
+                    List<Script> scriptList = new List<Script>();
+
+                    foreach (PostInstallScript script in PostInstallScripts)
+                    {
+                        scriptList.Add(
+                            new Script(
+                                script.ScriptContent, script.Stage switch
+                                {
+                                    PostInstallScript.StageContext.System => ScriptPhase.System,
+                                    PostInstallScript.StageContext.FirstLogon => ScriptPhase.FirstLogon,
+                                    PostInstallScript.StageContext.FirstTimeUserLogon => ScriptPhase.UserOnce,
+                                    PostInstallScript.StageContext.NTUserHiveModify => ScriptPhase.DefaultUser,
+                                },
+                                script.Stage switch
+                                {
+                                    PostInstallScript.StageContext.NTUserHiveModify => ScriptType.Reg,
+                                    _ => ScriptType.Ps1
+                                }));
+                    }
+
+                    scripts = scriptList.ToArray();
                 }
 
                 UnattendGenerator generator = new();
@@ -911,6 +999,13 @@ namespace UnattendGen
                             SystemTelemetry.Yes => ExpressSettingsMode.EnableAll,
                             _ => ExpressSettingsMode.DisableAll
                         },
+                        ScriptSettings = new ScriptSettings(
+                            Scripts: scripts.Length > 0 ? scripts : new Script[]
+                            {
+                                new Script("", ScriptPhase.System, ScriptType.Ps1)      // Come up with an excuse to not have an exception thrown
+                            },
+                            RestartExplorer: RestartExplorer
+                        ),
                         BypassRequirementsCheck = SV_LabConfig,
                         BypassNetworkCheck = SV_BypassNRO,
                         VBoxGuestAdditions = virtualMachine switch
