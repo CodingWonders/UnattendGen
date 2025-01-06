@@ -90,6 +90,11 @@ namespace UnattendGen.UserSettings
                                     {
                                         // Load script from file
                                         scriptPath = scriptContent.Substring(5);
+                                        if (!File.Exists(scriptPath))
+                                        {
+                                            Console.WriteLine($"WARNING: the specified file (\"{Path.GetFileName(scriptPath)}\") does not exist. Skipping...");
+                                            continue;
+                                        }
                                         Console.WriteLine($"INFO: Getting contents of file \"{Path.GetFileName(scriptPath)}\"...");
                                         scriptContent = File.ReadAllText(scriptPath);
                                     }
