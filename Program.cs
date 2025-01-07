@@ -153,6 +153,22 @@ namespace UnattendGen
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine("SEE ATTACHED PROGRAM LICENSES FOR MORE INFORMATION REGARDING USE AND REDISTRIBUTION\n");
 
+            if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "showversions")))
+            {
+                try
+                {
+                    FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnattendGenerator.dll"));
+                    string[] prodVersionParts = fvi.ProductVersion.Split('+');  // split version and git commit sha
+                    Console.WriteLine($"- Library Version: {prodVersionParts[0]}");
+                    Console.WriteLine($"- Git Commit: {prodVersionParts[1]}");
+                    Console.WriteLine($"              https://github.com/cschneegans/unattend-generator/commit/{prodVersionParts[1]}\n");
+                }
+                catch
+                {
+                    // Don't show it
+                }
+            }
+
             var generator = new AnswerFileGenerator();
 
             if (Environment.GetCommandLineArgs().Contains("/debug"))
@@ -899,6 +915,7 @@ namespace UnattendGen
                                         PostInstallScript.StageContext.FirstLogon => ScriptPhase.FirstLogon,
                                         PostInstallScript.StageContext.FirstTimeUserLogon => ScriptPhase.UserOnce,
                                         PostInstallScript.StageContext.NTUserHiveModify => ScriptPhase.DefaultUser,
+                                        _ => ScriptPhase.System
                                     },
                                     script.Stage switch
                                     {
