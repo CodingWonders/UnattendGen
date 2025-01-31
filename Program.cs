@@ -858,6 +858,7 @@ namespace UnattendGen
                                 continue;
                             accountList.Add(new Account(
                                 name: account.Name,
+                                displayName: "",
                                 password: account.Password,
                                 group: account.Group switch
                                 {

@@ -23,6 +23,8 @@ namespace UnattendGen.UserSettings
 
         public string? Name;
 
+        public string? DisplayName;
+
         public string? Password;
 
         public UserGroup Group;
@@ -31,6 +33,7 @@ namespace UnattendGen.UserSettings
         {
             Enabled = false;
             Name = "";
+            DisplayName = "";
             Password = "";
             Group = UserGroup.Users;
         }
@@ -39,6 +42,16 @@ namespace UnattendGen.UserSettings
         {
             Enabled = enabled;
             Name = name;
+            DisplayName = "";
+            Password = password;
+            Group = group;
+        }
+
+        public UserAccount(bool enabled, string? name, string? displayName, string? password, UserGroup group)
+        {
+            Enabled = enabled;
+            Name = name;
+            DisplayName = displayName;
             Password = password;
             Group = group;
         }
