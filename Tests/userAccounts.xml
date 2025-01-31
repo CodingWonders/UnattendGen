@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <root>
-    <UserAccount Enabled="1" Name="Dave Cutler" Password="Test1" Group="Admins" />
+    <UserAccount Enabled="1" Name="Dave Cutler" DisplayName="DaveC" Password="Test1" Group="Admins" />
     <UserAccount Enabled="1" Name="Raymond Chen" Password="Test2" Group="Admins" />
-    <UserAccount Enabled="1" Name="Mark Russinovich" Password="Test3" Group="Admins" />
-    <UserAccount Enabled="1" Name="Mads Kristensen" Password="Test4" Group="Admins" />
+    <UserAccount Enabled="1" Name="Mark Russinovich" DisplayName="Cofounder of Winternals, CTO of Microsoft Azure" Password="Test3" Group="Admins" />
+    <UserAccount Enabled="1" Name="Mads Kristensen" DisplayName="Web developer, Visual Studio extension author, home automation nerd, and PM at Microsoft's Developer Division" Password="Test4" Group="Admins" />
     <UserAccount Enabled="1" Name="Bill Gates" Password="Test5" Group="Admins" />
     <UserAccount Enabled="1" Name="Steve Ballmer" Password="Test6" Group="Admins" />
     <UserAccount Enabled="1" Name="Satya Nadella" Password="Test7" Group="Users" />

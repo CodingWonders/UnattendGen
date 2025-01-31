@@ -404,6 +404,7 @@ namespace UnattendGen
                                             if (account.Enabled)
                                             {
                                                 Console.WriteLine($"\t\t- Name: {account.Name}");
+                                                Console.WriteLine($"\t\t- Display Name: {account.DisplayName}");
                                                 Console.WriteLine($"\t\t- Password: {account.Password}");
                                                 Console.WriteLine($"\t\t- Group: {account.Group switch
                                                 {

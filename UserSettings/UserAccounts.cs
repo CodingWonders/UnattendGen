@@ -74,6 +74,13 @@ namespace UnattendGen.UserSettings
                             {
                                 int nameLength = reader.GetAttribute("Name").Length;
 
+                                string accountDisplayName = "";
+
+                                if (reader.GetAttribute("DisplayName") != null)
+                                {
+                                    accountDisplayName = reader.GetAttribute("DisplayName");
+                                }
+
                                 UserAccount account = new UserAccount(reader.GetAttribute("Enabled") switch
                                                                       {
                                                                           "1" => true,
@@ -83,6 +90,9 @@ namespace UnattendGen.UserSettings
                                                                       (reader.GetAttribute("Name").Length > 20 ?
                                                                           reader.GetAttribute("Name").Substring(0, 20) :
                                                                           reader.GetAttribute("Name")),
+                                                                      (accountDisplayName.Length > 256 ?
+                                                                          accountDisplayName.Substring(0, 256) :
+                                                                          accountDisplayName),
                                                                       reader.GetAttribute("Password"),
                                                                       reader.GetAttribute("Group") switch
                                                                       {
