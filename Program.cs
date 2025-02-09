@@ -56,7 +56,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -64,7 +64,7 @@ namespace UnattendGen
                 "\tRegional settings:\n\n" +
                 "\t\t/regionfile\t\tConfigures regional settings given a XML file specified by <regionFile>. Defaults to Interactive regional settings if not set.\n\n" +
                 "\tBasic system settings:\n\n" +
-                "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set\n" +
+                "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set. You can configure multiple architectures by separating them with commas (,)\n" +
                 "\t\t/LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
                 "\t\t/BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
                 "\t\t/ConfigSet\t\tConfigures the target system to use a configuration set or distribution share. Said set or share needs to be present in the ISO you copy the answer file to beforehand\n" +
