@@ -221,27 +221,35 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("/architecture", StringComparison.OrdinalIgnoreCase))
                     {
-                        switch (cmdLine.Replace("/architecture=", "").Trim())
+                        string[] architectures = cmdLine.Replace("/architecture=", "").Trim().Split(',');
+                        if (architectures.Length > 0)
                         {
-                            case "x86":
-                            case "i386":
-                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.x86;
-                                DebugWrite("Architecture: x86", (debugMode | Debugger.IsAttached));
-                                break;
-                            case "x64":
-                            case "amd64":
-                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
-                                DebugWrite("Architecture: amd64", (debugMode | Debugger.IsAttached));
-                                break;
-                            case "aarch64":
-                            case "arm64":
-                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.arm64;
-                                DebugWrite("Architecture: arm64", (debugMode | Debugger.IsAttached));
-                                break;
-                            default:
-                                Console.WriteLine($"WARNING: Unknown processor architecture: {cmdLine.Replace("/architecture=", "").Trim()}. Continuing with AMD64...");
-                                generator.architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
-                                break;
+                            // For each architecture that we have detected, check if it is valid and add it to the list in the generator
+                            foreach (string arch in architectures)
+                            {
+                                switch (arch.Trim())
+                                {
+                                    case "x86":
+                                    case "i386":
+                                        generator.processorArchitectures.Add(Schneegans.Unattend.ProcessorArchitecture.x86);
+                                        DebugWrite("Specified architecture: x86", (debugMode | Debugger.IsAttached));
+                                        break;
+                                    case "x64":
+                                    case "amd64":
+                                        generator.processorArchitectures.Add(Schneegans.Unattend.ProcessorArchitecture.amd64);
+                                        DebugWrite("Specified architecture: amd64", (debugMode | Debugger.IsAttached));
+                                        break;
+                                    case "aarch64":
+                                    case "arm64":
+                                        generator.processorArchitectures.Add(Schneegans.Unattend.ProcessorArchitecture.arm64);
+                                        DebugWrite("Specified architecture: arm64", (debugMode | Debugger.IsAttached));
+                                        break;
+                                    default:
+                                        Console.WriteLine($"WARNING: Unknown processor architecture: {arch.Trim()}. Continuing with AMD64...");
+                                        generator.processorArchitectures.Add(Schneegans.Unattend.ProcessorArchitecture.amd64);
+                                        break;
+                                }
+                            }
                         }
                     }
                     else if (cmdLine.StartsWith("/LabConfig", StringComparison.OrdinalIgnoreCase))
@@ -790,7 +798,7 @@ namespace UnattendGen
 
         public string computerName = "";
 
-        public Schneegans.Unattend.ProcessorArchitecture architecture = Schneegans.Unattend.ProcessorArchitecture.amd64;
+        public List<Schneegans.Unattend.ProcessorArchitecture> processorArchitectures = [];
 
         public bool SV_LabConfig;
 
@@ -873,7 +881,7 @@ namespace UnattendGen
                     userAccounts = userAccounts.AddRange(accountList.ToArray());
 
                     ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
-                    architectures = architectures.Add(architecture);
+                    architectures = architectures.Union(processorArchitectures);
 
                     var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
 
