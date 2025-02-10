@@ -56,7 +56,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/firmware | /generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -73,7 +73,8 @@ namespace UnattendGen
                 "\t\t/tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
                 "\tDisk configuration settings:\n\n" +
                 "\t\t/partmode\t\tSets the partitioning mode. Possible values: interactive (ask during system setup); unattended (configure settings of Disk 0); custom (use a DiskPart script). Defaults to interactive if not set\n\n" +
-                "\tEdition settings: (USE EITHER SWITCH BUT NOT BOTH)\n\n" +
+                "\tEdition settings: (USE ONE SWITCH BUT NOT ALL)\n\n" +
+                "\t\t/firmware\t\tConfigures the target system to use the product key embedded in the firmware (note, this requires a modern system)\n" +
                 "\t\t/generic\t\tSets generic edition settings using a configuration file. Defaults to Pro edition if not set\n" +
                 "\t\t/customkey\t\tSets a custom key, defined by <key> to be used for installation, which may or may not be valid\n\n" +
                 "\tUser settings:\n\n" +
@@ -349,6 +350,12 @@ namespace UnattendGen
                                 partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
                                 break;
                         }
+                    }
+                    else if (cmdLine.StartsWith("/firmware", StringComparison.OrdinalIgnoreCase))
+                    {
+                        generator.editionFirmwareChosen = true;
+                        genericChosen = false;
+                        DebugWrite("The unattended answer file will use the product key embedded in the firmware", (debugMode | Debugger.IsAttached));
                     }
                     else if (cmdLine.StartsWith("/generic", StringComparison.OrdinalIgnoreCase))
                     {
@@ -814,6 +821,8 @@ namespace UnattendGen
 
         public DiskPartSettings? diskPartSettings;
 
+        public bool editionFirmwareChosen;
+
         public bool editionGenericChosen;
 
         public SystemEdition? genericEdition;
@@ -996,7 +1005,7 @@ namespace UnattendGen
                                     id: genericEdition.Id,
                                     displayName: genericEdition.DisplayName,
                                     productKey: genericEdition.ProductKey,
-                                    visible: true)) : new CustomEditionSettings(
+                                    visible: true)) : editionFirmwareChosen ? new FirmwareEditionSettings() : new CustomEditionSettings(
                                         productKey: customKey),
                             LockoutSettings = lockout.Enabled ? new CustomLockoutSettings(
                                 lockoutThreshold: lockout.FailedAttempts,
