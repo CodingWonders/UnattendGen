@@ -16,7 +16,7 @@ namespace UnattendGen
 
         static string GetCopyrightTimespan(int start, int current)
         {
-            if (current == start)
+            if (current <= start)
             {
                 return current.ToString();
             }
