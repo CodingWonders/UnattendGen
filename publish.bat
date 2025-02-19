@@ -1,6 +1,6 @@
 @echo off
 
-where dotnet 2>nul
+where dotnet >nul 2>nul
 
 if %ERRORLEVEL% gtr 0 (
 	echo .NET SDK not installed. Exiting...
@@ -12,6 +12,8 @@ if exist "bin\release\net9.0" (
 )
 
 cls
+
+set DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 echo Publishing self-contained binaries...
 
