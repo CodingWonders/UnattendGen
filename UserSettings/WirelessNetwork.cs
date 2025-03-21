@@ -39,6 +39,9 @@ namespace UnattendGen.UserSettings
             SSID = ssid;
             Password = password;
             Authentication = authProtocol;
+            // Disregard password on open networks
+            if (authProtocol == AuthenticationProtocol.Open)
+                Password = "";
             NonBroadcast = nonBroadcast;
         }
 
