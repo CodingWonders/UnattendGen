@@ -272,13 +272,19 @@ namespace UnattendGen
                     else if (cmdLine.StartsWith("/computername", StringComparison.OrdinalIgnoreCase))
                     {
                         string name = cmdLine.Replace("/computername=", "").Trim();
-                        name = ValidateComputerName(name);
+                        if (!name.StartsWith("script:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            name = ValidateComputerName(name);
 
-                        if (name == "")
-                            Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("/computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
+                            if (name == "")
+                                Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("/computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
 
-                        DebugWrite($"Computer name: {name}", (debugMode | Debugger.IsAttached));
-
+                            DebugWrite($"Computer name: {name}", (debugMode | Debugger.IsAttached));
+                        }
+                        else
+                        {
+                            DebugWrite($"Computer name will be provided by a PowerShell script", (debugMode | Debugger.IsAttached));
+                        }
                         computerName = name;
                     }
                     else if (cmdLine.StartsWith("/tzImplicit", StringComparison.OrdinalIgnoreCase))
@@ -1013,7 +1019,12 @@ namespace UnattendGen
                                 lockoutDuration: lockout.AutoUnlock) : new DisableLockoutSettings(),
                             PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
                                 maxAge: ExpirationDays)),
-                            ComputerNameSettings = randomComputerName ? new RandomComputerNameSettings() : new CustomComputerNameSettings(
+                            ComputerNameSettings = randomComputerName ? 
+                            new RandomComputerNameSettings() : 
+                            (computerName.StartsWith("script:", StringComparison.OrdinalIgnoreCase)) ? 
+                            new ScriptComputerNameSettings(
+                                Script: computerName.Replace("script:", "")) :
+                            new CustomComputerNameSettings(
                                 name: computerName),
                             TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
                                 TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
