@@ -123,7 +123,7 @@ You can look at example configuration files with the following links:
 - [Lockout settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/lockout.xml)
 - [Wireless settings](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/wireless.xml)
 - [Post-installation scripts](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/scripts.xml)
-- [Custom configuration](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/components.xml)
+- [Custom components](https://github.com/CodingWonders/UnattendGen/blob/master/Tests/Components)
 
 
 ## Building

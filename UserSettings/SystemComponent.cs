@@ -58,6 +58,9 @@ namespace UnattendGen.UserSettings
                             string[] nameParts = fileName.Split("_");
                             string name = nameParts[0];
                             string pass = nameParts[1];
+                            string[] knownPasses = ["windowspe", "offlineservicing", "generalize", "specialize", "audituser", "auditsystem", "oobesystem"];
+                            if (!knownPasses.Contains(pass.ToLower()))
+                                continue;
                             List<SystemPass> passes = [new SystemPass(pass)];
                             string contents = File.ReadAllText(filePath);
                             if (!String.IsNullOrEmpty(contents))
