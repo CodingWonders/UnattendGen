@@ -146,7 +146,7 @@ namespace UnattendGen
             // Add Microsoft-Windows-Shell-Setup in oobeSystem pass. It's already filled in, but add it anyway
             List<SystemPass> defaultPasses = new List<SystemPass>();
             defaultPasses.Add(new SystemPass("oobeSystem"));
-            SystemComponent defaultComponent = new SystemComponent("Microsoft-Windows-Shell-Setup", defaultPasses);
+            SystemComponent defaultComponent = new SystemComponent("Microsoft-Windows-Shell-Setup", defaultPasses, "");
             defaultComponents.Add(defaultComponent);
 
             Console.WriteLine($"UnattendGen{(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DT")) ? " for DISMTools" : "")}, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
@@ -717,7 +717,7 @@ namespace UnattendGen
                         {
                             try
                             {
-                                List<SystemComponent> components = SystemComponent.LoadComponents(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "components.xml"));
+                                List<SystemComponent> components = SystemComponent.LoadComponents();
                                 generator.SystemComponents = components;
                                 DebugWrite($"System components:\n", (debugMode | Debugger.IsAttached));
                                 if (debugMode | Debugger.IsAttached)
@@ -727,11 +727,8 @@ namespace UnattendGen
                                         foreach (SystemComponent component in components)
                                         {
                                             Console.WriteLine($"\t- Component name: {component.Id}");
-                                            Console.WriteLine($"\t\t- Passes:");
-                                            foreach (SystemPass pass in component.Passes)
-                                            {
-                                                Console.WriteLine($"\t\t\t- \"{pass.Name}\"");
-                                            }
+                                            Console.WriteLine($"\t- Pass: {component.Passes[0].Name}");
+                                            Console.WriteLine($"\t- Data: \n\n{component.Data}\n\n");
                                         }
                                     }
                                     Console.WriteLine();
@@ -906,7 +903,8 @@ namespace UnattendGen
                     ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
                     architectures = architectures.Union(processorArchitectures);
 
-                    var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
+                    //var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
+                    var componentDictionary = ImmutableDictionary.Create<ComponentAndPass, string>();
 
                     foreach (SystemComponent component in SystemComponents)
                     {
@@ -914,7 +912,7 @@ namespace UnattendGen
 
                         foreach (SystemPass componentPass in component.Passes)
                         {
-                            passSet.Add(componentPass.Name switch
+                            componentDictionary = componentDictionary.Add(new ComponentAndPass(component.Id, componentPass.Name switch
                             {
                                 "offlineServicing" => Pass.offlineServicing,
                                 "windowsPE" => Pass.windowsPE,
@@ -924,11 +922,8 @@ namespace UnattendGen
                                 "auditUser" => Pass.auditUser,
                                 "oobeSystem" => Pass.oobeSystem,
                                 _ => Pass.oobeSystem        // Default to oobeSystem. This is the most unlikely case
-                            });
-
+                            }), component.Data);
                         }
-
-                        componentDictionary = componentDictionary.Add(component.Id, passSet.ToImmutable());
 
                     }
 

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Text.RegularExpressions;
 
 namespace UnattendGen.UserSettings
 {
@@ -15,6 +16,8 @@ namespace UnattendGen.UserSettings
         public string? Id;
 
         public List<SystemPass>? Passes = new List<SystemPass>();
+
+        public string? Data;
 
         public SystemComponent() { }
 
@@ -29,45 +32,40 @@ namespace UnattendGen.UserSettings
             Passes = passes;
         }
 
-        public static List<SystemComponent>? LoadComponents(string? filePath)
+        public SystemComponent(string? id, List<SystemPass>? passes, string? data)
+        {
+            Id = id;
+            Passes = passes;
+            Data = data;
+        }
+
+        public static List<SystemComponent>? LoadComponents()
         {
             List<SystemComponent> componentList = new List<SystemComponent>();
 
             try
             {
-                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+                string[] componentFiles = Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, 
+                    "Components"), 
+                    "*.xml", SearchOption.TopDirectoryOnly);
+                if (componentFiles.Length > 0)
                 {
-                    XmlReaderSettings xs = new XmlReaderSettings();
-                    xs.IgnoreWhitespace = true;
-                    using (XmlReader reader = XmlReader.Create(fs, xs))
+                    foreach (string filePath in componentFiles)
                     {
-                        while (reader.Read())
+                        string fileName = Path.GetFileNameWithoutExtension(filePath);
+                        if (Regex.IsMatch(fileName, @"^.*_\w*$"))
                         {
-                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "Component")
+                            string[] nameParts = fileName.Split("_");
+                            string name = nameParts[0];
+                            string pass = nameParts[1];
+                            List<SystemPass> passes = [new SystemPass(pass)];
+                            string contents = File.ReadAllText(filePath);
+                            if (!String.IsNullOrEmpty(contents))
                             {
-                                string passList = reader.GetAttribute("Passes");
-                                List<String> passListTemp = new List<String>();
-                                passListTemp = passList.Split(new char[] { ',' }).ToList();
-
-                                List<SystemPass> passes = new List<SystemPass>();
-
-                                List<string> knownPasses =
-                                [
-                                    .. new string[] { "offlineServicing", "windowsPE", "generalize", "specialize", "auditSystem", "auditUser", "oobeSystem" },
-                                ];
-
-                                foreach (string pass in passListTemp)
-                                {
-                                    if (!knownPasses.Contains(pass))
-                                    {
-                                        Debug.WriteLine($"Unknown pass \"{pass}\"");
-                                        continue;
-                                    }
-                                    passes.Add(new SystemPass(pass));
-                                }
-
-                                SystemComponent component = new SystemComponent(reader.GetAttribute("Id"), passes);
-
+                                SystemComponent component = new SystemComponent(
+                                    name,
+                                    passes,
+                                    contents);
                                 componentList.Add(component);
                             }
                         }
