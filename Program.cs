@@ -56,7 +56,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/firmware | /generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]\n");
+                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/firmware | /generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/hidewindows] [/restartexplorer] [/customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t/?         \t\tShows this help screen\n" +
@@ -92,6 +92,7 @@ namespace UnattendGen
                 "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set\n\n" +
                 "\tPost-installation scripts:\n\n" +
                 "\t\t/customscripts\t\tConfigures post-installation scripts using a \"scripts.xml\" configuration file\n" +
+                "\t\t/hidewindows\t\tHides any post-installation script windows (don't do this unless you are not debugging your scripts)\n" +
                 "\t\t/restartexplorer\tRestarts File Explorer after running post-installation scripts\n\n" +
                 "\tCustom configuration:\n\n" +
                 "\t\t/customcomponents\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
@@ -699,6 +700,11 @@ namespace UnattendGen
                             generator.PostInstallScripts = new List<PostInstallScript>();
                         }
                     }
+                    else if (cmdLine.StartsWith("/hidewindows", StringComparison.OrdinalIgnoreCase))
+                    {
+                        DebugWrite("Script windows will be hidden", (debugMode | Debugger.IsAttached));
+                        generator.HideScriptWindows = true;
+                    }
                     else if (cmdLine.StartsWith("/restartexplorer", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("File Explorer will be restarted after running post-installation scripts...", (debugMode | Debugger.IsAttached));
@@ -860,6 +866,8 @@ namespace UnattendGen
         public SystemTelemetry Telemetry;
 
         public List<PostInstallScript>? PostInstallScripts = new List<PostInstallScript>();
+
+        public bool HideScriptWindows;
 
         public bool RestartExplorer;
 
@@ -1074,6 +1082,7 @@ namespace UnattendGen
                                 _ => false
                             },
                             UseConfigurationSet = UseConfigSet,
+                            HidePowerShellWindows = HideScriptWindows,
                             DeleteWindowsOld = true
                         }
                         );
