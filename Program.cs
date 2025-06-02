@@ -713,38 +713,31 @@ namespace UnattendGen
                     else if (cmdLine.StartsWith("/customcomponents", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Configuring custom components...");
-                        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "components.xml")))
+                        try
                         {
-                            try
+                            List<SystemComponent> components = SystemComponent.LoadComponents();
+                            generator.SystemComponents = components;
+                            DebugWrite($"System components:\n", (debugMode | Debugger.IsAttached));
+                            if (debugMode | Debugger.IsAttached)
                             {
-                                List<SystemComponent> components = SystemComponent.LoadComponents();
-                                generator.SystemComponents = components;
-                                DebugWrite($"System components:\n", (debugMode | Debugger.IsAttached));
-                                if (debugMode | Debugger.IsAttached)
+                                if (components.Count > 0)
                                 {
-                                    if (components.Count > 0)
+                                    foreach (SystemComponent component in components)
                                     {
-                                        foreach (SystemComponent component in components)
-                                        {
-                                            Console.WriteLine($"\t- Component name: {component.Id}");
-                                            Console.WriteLine($"\t- Pass: {component.Passes[0].Name}");
-                                            Console.WriteLine($"\t- Data: \n\n{component.Data}\n\n");
-                                        }
+                                        Console.WriteLine($"\t- Component name: {component.Id}");
+                                        Console.WriteLine($"\t- Pass: {component.Passes[0].Name}");
+                                        Console.WriteLine($"\t- Data: \n\n{component.Data}\n\n");
                                     }
-                                    Console.WriteLine();
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine("WARNING: Could not parse system components file. Continuing without settings...");
-                                if (Debugger.IsAttached)
-                                    Debugger.Break();
-                                DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
-                                generator.SystemComponents = defaultComponents;
+                                Console.WriteLine();
                             }
                         }
-                        else
+                        catch (Exception ex)
                         {
+                            Console.WriteLine("WARNING: Could not parse system components file. Continuing without settings...");
+                            if (Debugger.IsAttached)
+                                Debugger.Break();
+                            DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
                             generator.SystemComponents = defaultComponents;
                         }
                     }
