@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
-    <AssemblyVersion>0.7.0.2562</AssemblyVersion>
-    <FileVersion>0.7.0.2562</FileVersion>
+    <AssemblyVersion>0.7.0.2572</AssemblyVersion>
+    <FileVersion>0.7.0.2572</FileVersion>
     <Copyright>(c) 2024-2025. CodingWonders Software, Christoph Schneegans</Copyright>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -14,7 +14,7 @@ This project uses Christoph Schneegans' unattended answer file generation librar
 When running the program with the `/?` argument, you will see the following usage pattern:
 
 ```
-UnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }[,...]] [/LabConfig] [/BypassNRO] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/firmware | /generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/restartexplorer] [/customcomponents]
+UnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }[,...]] [--LabConfig] [--BypassNRO] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--restartexplorer] [--customcomponents]
 ```
 
 When running the program with no arguments, it will generate a basic answer file with default settings. If you want to avoid this behavior and create your custom answer file, you will need to pass the appropriate switches.
@@ -25,34 +25,34 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
-| `/target` | Saves the answer file to the path defined in `<targetPath>`. If this switch is not passed, UnattendGen will save the answer file to `unattend.xml` in the program directory |
+| `--target` | Saves the answer file to the path defined in `<targetPath>`. If this switch is not passed, UnattendGen will save the answer file to `unattend.xml` in the program directory |
 
 **Regional settings**
 
 | Switch | Action |
 |:--:|:--|
-| `/regionfile` | Configures regional settings based on the XML configuration file that you will need to create manually. Read the Configuration Files section for more information. If this switch is not passed, UnattendGen will use interactive settings (which will make Setup ask you) |
+| `--regionfile` | Configures regional settings based on the XML configuration file that you will need to create manually. Read the Configuration Files section for more information. If this switch is not passed, UnattendGen will use interactive settings (which will make Setup ask you) |
 
 **Basic system settings**
 
 | Switch | Action |
 |:--:|:--|
-| `/architecture` | Configures the system architecture to use with the unattended answer file. You can choose either of the following options: `x86` or `i386` for 32-bit systems (use therefore with Windows 10), `x64` or `amd64` for 64-bit systems; or `aarch64` or `arm64` for ARM-based chips (usually found in single-board computers (SBCs)) (use with Windows on ARM only). If this switch is not passed, UnattendGen will default to `amd64`. If you want to configure multiple architectures for your answer file, separate them with commas |
-| `/LabConfig` | Configures registry keys that enable you to bypass the system requirement checks for Windows 11 Setup. If this switch is not passed, these settings are not configured. Otherwise, the target file must be used only on Windows 11 |
-| `/BypassNRO` | Configures registry keys that enable you to bypass the mandatory network connection setup of the Out-of-box Experience (OOBE) for Windows 11. If this switch is not passed, these settings are not configured. Otherwise, the target file must be used only on Windows 11. Also note that this may not work on version 24H2 |
-| `/computername` | Configures the name of the computer using the value defined in `<compName>`. If this switch is not passed, a random computer name will be chosen |
+| `--architecture` | Configures the system architecture to use with the unattended answer file. You can choose either of the following options: `x86` or `i386` for 32-bit systems (use therefore with Windows 10), `x64` or `amd64` for 64-bit systems; or `aarch64` or `arm64` for ARM-based chips (usually found in single-board computers (SBCs)) (use with Windows on ARM only). If this switch is not passed, UnattendGen will default to `amd64`. If you want to configure multiple architectures for your answer file, separate them with commas |
+| `--LabConfig` | Configures registry keys that enable you to bypass the system requirement checks for Windows 11 Setup. If this switch is not passed, these settings are not configured. Otherwise, the target file must be used only on Windows 11 |
+| `--BypassNRO` | Configures registry keys that enable you to bypass the mandatory network connection setup of the Out-of-box Experience (OOBE) for Windows 11. If this switch is not passed, these settings are not configured. Otherwise, the target file must be used only on Windows 11. Also note that this may not work on version 24H2 |
+| `--computername` | Configures the name of the computer using the value defined in `<compName>`. If this switch is not passed, a random computer name will be chosen |
 
 **Time zone settings**
 
 | Switch | Action |
 |:--:|:--|
-| `/tzImplicit` | Configures the system to determine the time zone from the regional settings chosen with `/regionfile`. If this switch is not passed, UnattendGen will configure the time zone based on your configuration |
+| `--tzImplicit` | Configures the system to determine the time zone from the regional settings chosen with `--regionfile`. If this switch is not passed, UnattendGen will configure the time zone based on your configuration |
 
 **Disk configuration settings**
 
 | Switch | Action |
 |:--:|:--|
-| `/partmode` | Sets the disk configuration mode. You can choose either of the following options: `interactive` (Setup will ask you), `unattended` (configures options for Disk 0 based on a configuration file); or `custom` (configures options for disks and partitions using a DiskPart configuration file). If this switch is not passed, UnattendGen will use interactive settings |
+| `--partmode` | Sets the disk configuration mode. You can choose either of the following options: `interactive` (Setup will ask you), `unattended` (configures options for Disk 0 based on a configuration file); or `custom` (configures options for disks and partitions using a DiskPart configuration file). If this switch is not passed, UnattendGen will use interactive settings |
 
 **Edition settings**
 
@@ -61,54 +61,54 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
-| `/firmware` | The target system will use the product key embedded in the computer's firmware |
-| `/generic` | Configures the edition of the installation based on a configuration file. If this switch is not passed, UnattendGen will use a generic Pro edition |
-| `/customkey` | Configures the edition of the installation based on a product key defined in `<key>`. **Make sure your product key is valid before passing it** |
+| `--firmware` | The target system will use the product key embedded in the computer's firmware |
+| `--generic` | Configures the edition of the installation based on a configuration file. If this switch is not passed, UnattendGen will use a generic Pro edition |
+| `--customkey` | Configures the edition of the installation based on a product key defined in `<key>`. **Make sure your product key is valid before passing it** |
 
 **User settings**
 
 > [!NOTE]
-> If you don't specify `/customusers`, you will not be able to use `/autologon` and/or `/b64obscure`
+> If you don't specify `--customusers`, you will not be able to use `--autologon` and/or `--b64obscure`
 
 | Switch | Action |
 |:--:|:--|
-| `/msa` | Configures the target system to ask for a Microsoft account |
-| `/customusers` | Configures user accounts based on a configuration file. If this switch is not specified, UnattendGen will use interactive settings |
-| `/autologon` | Configures autologon settings. You can use either of the following options: `firstadmin` (Setup will use the first administrator account in the user configuration file), or `builtinadmin` (Setup will use the built-in Administrator account with the password defined in a configuration file). This switch requires `/customusers`, and, if not set, UnattendGen will disable autologon |
-| `/b64obscure` | Configures user passwords to be obscured with Base64. This switch requires `/customusers` |
-| `/pwExpire` | Configures user passwords to be expired after an amount of days defined in `<days>` (this is not recommended by NIST) |
-| `/lockout` | Configures Account Lockout settings for users. You can specify either `yes` (to configure these settings with a configuration file) or `no` (to disable Lockout policies - not recommended). If this switch is not passed, UnattendGen will use default policies |
+| `--msa` | Configures the target system to ask for a Microsoft account |
+| `--customusers` | Configures user accounts based on a configuration file. If this switch is not specified, UnattendGen will use interactive settings |
+| `--autologon` | Configures autologon settings. You can use either of the following options: `firstadmin` (Setup will use the first administrator account in the user configuration file), or `builtinadmin` (Setup will use the built-in Administrator account with the password defined in a configuration file). This switch requires `--customusers`, and, if not set, UnattendGen will disable autologon |
+| `--b64obscure` | Configures user passwords to be obscured with Base64. This switch requires `--customusers` |
+| `--pwExpire` | Configures user passwords to be expired after an amount of days defined in `<days>` (this is not recommended by NIST) |
+| `--lockout` | Configures Account Lockout settings for users. You can specify either `yes` (to configure these settings with a configuration file) or `no` (to disable Lockout policies - not recommended). If this switch is not passed, UnattendGen will use default policies |
 
 **Virtual Machine support**
 
 | Switch | Action |
 |:--:|:--|
-| `/vm` | Configures Virtual Machine support based on a provider. You can use either of the following options: `vbox_gas` (use with VirtualBox), `vmware` (use with VMware hypervisors); or `virtio` (use with QEMU-based hypervisors). If this switch is not specified, UnattendGen will disable enhanced support from your VM provider |
+| `--vm` | Configures Virtual Machine support based on a provider. You can use either of the following options: `vbox_gas` (use with VirtualBox), `vmware` (use with VMware hypervisors); or `virtio` (use with QEMU-based hypervisors). If this switch is not specified, UnattendGen will disable enhanced support from your VM provider |
 
 **Wireless settings**
 
 | Switch | Action |
 |:--:|:--|
-| `/wifi` | Configures wireless network settings. You can specify either `yes` (to configure these settings with a configuration file) or `no` (to skip this configuration). If this switch is not specified, UnattendGen will use interactive settings |
+| `--wifi` | Configures wireless network settings. You can specify either `yes` (to configure these settings with a configuration file) or `no` (to skip this configuration). If this switch is not specified, UnattendGen will use interactive settings |
 
 **System telemetry**
 
 | Switch | Action |
 |:--:|:--|
-| `/telem` | Configures system telemetry settings. You can specify either `yes` (to enable telemetry) or `no` (to (attempt to) disable telemetry). If this switch is not specified, UnattendGen will use interactive settings |
+| `--telem` | Configures system telemetry settings. You can specify either `yes` (to enable telemetry) or `no` (to (attempt to) disable telemetry). If this switch is not specified, UnattendGen will use interactive settings |
 
 **Post-installation scripts**
 
 | Switch | Action |
 |:--:|:--|
-| `/customscripts` | Configures custom scripts given a `scripts.xml` file |
-| `/restartexplorer` | Configures the system to restart Windows Explorer after all scripts are complete |
+| `--customscripts` | Configures custom scripts given a `scripts.xml` file |
+| `--restartexplorer` | Configures the system to restart Windows Explorer after all scripts are complete |
 
 **Component configuration**
 
 | Switch | Action |
 |:--:|:--|
-| `/customcomponents` | Configures custom components using a configuration file. If this switch is not specified, UnattendGen will use default configurations and passes |
+| `--customcomponents` | Configures custom components using a configuration file. If this switch is not specified, UnattendGen will use default configurations and passes |
 
 ### Configuration files
 

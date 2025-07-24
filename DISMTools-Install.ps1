@@ -6,10 +6,36 @@ param (
 
 [Net.ServicePointManager]::SecurityProtocol = "Tls12"
 
+$useAlternateName = $false
+$newNames = @("UnattendGen-x64--Windows-SelfContained.zip", "UnattendGen-x86--Windows-SelfContained.zip")
+$alternateNames = @("UnattendGen-x64--SelfContained.zip", "UnattendGen-x86--SelfContained.zip")
+
+$successfulDownloads = 0
+
 Write-Host "Downloading self-contained UnattendGen..."
 $ProgressPreference = 'SilentlyContinue'
-Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/UnattendGen-x64--SelfContained.zip" -OutFile ".\unattendgen-sc-amd64.zip"
-Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/UnattendGen-x86--SelfContained.zip" -OutFile ".\unattendgen-sc-x86.zip"
+try {
+	foreach ($name in $newNames) {
+		if ($name.Contains("x64")) {
+			Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/$name" -OutFile ".\unattendgen-sc-amd64.zip" -ErrorAction SilentlyContinue
+		} else {
+			Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/$name" -OutFile ".\unattendgen-sc-x86.zip" -ErrorAction SilentlyContinue
+		}
+		if ($?) { $successfulDownloads++ }
+	}
+	if ($successfulDownloads -lt 2) { throw }
+} catch {
+	$successfulDownloads = 0
+	foreach ($name in $alternateNames) {
+		if ($name.Contains("x64")) {
+			Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/$name" -OutFile ".\unattendgen-sc-amd64.zip" -ErrorAction SilentlyContinue
+		} else {
+			Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/CodingWonders/UnattendGen/releases/download/$tag/$name" -OutFile ".\unattendgen-sc-x86.zip" -ErrorAction SilentlyContinue
+		}
+		if ($?) { $successfulDownloads++ }
+	}
+	if ($successfulDownloads -lt 2) { exit 1 }
+}
 $ProgressPreference = 'Continue'
 
 Write-Host "Expanding archives..."

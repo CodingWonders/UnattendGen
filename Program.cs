@@ -56,46 +56,46 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [/target=<targetPath>] [/regionfile=<regionFile>] [/architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [/LabConfig] [/BypassNRO] [/ConfigSet] [/computername=<compName>] [/tzImplicit] [/partmode={ interactive | unattended | custom }] [/firmware | /generic | /customkey=<key>] [/msa] [/customusers] [/autologon={ firstadmin | builtinadmin }] [/b64obscure] [/pwExpire=<days>] [/lockout={ yes | no } [/vm={ vbox_gas | vmware | virtio }] [/wifi={ yes | no }] [/telem={ yes | no }] [/customscripts] [/hidewindows] [/restartexplorer] [/customcomponents]\n");
+                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--ConfigSet] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
-                "\t\t/?         \t\tShows this help screen\n" +
-                "\t\t/target    \t\tSaves the unattended answer file to the path specified by <targetPath>. Defaults to \"unattend.xml\" in the current directory if not set.\n\n" +
+                "\t\t--help         \t\tShows this help screen\n" +
+                "\t\t--target    \t\tSaves the unattended answer file to the path specified by <targetPath>. Defaults to \"unattend.xml\" in the current directory if not set.\n\n" +
                 "\tRegional settings:\n\n" +
-                "\t\t/regionfile\t\tConfigures regional settings given a XML file specified by <regionFile>. Defaults to Interactive regional settings if not set.\n\n" +
+                "\t\t--regionfile\t\tConfigures regional settings given a XML file specified by <regionFile>. Defaults to Interactive regional settings if not set.\n\n" +
                 "\tBasic system settings:\n\n" +
-                "\t\t/architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set. You can configure multiple architectures by separating them with commas (,)\n" +
-                "\t\t/LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
-                "\t\t/BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
-                "\t\t/ConfigSet\t\tConfigures the target system to use a configuration set or distribution share. Said set or share needs to be present in the ISO you copy the answer file to beforehand\n" +
-                "\t\t/computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
+                "\t\t--architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set. You can configure multiple architectures by separating them with commas (,)\n" +
+                "\t\t--LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
+                "\t\t--BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
+                "\t\t--ConfigSet\t\tConfigures the target system to use a configuration set or distribution share. Said set or share needs to be present in the ISO you copy the answer file to beforehand\n" +
+                "\t\t--computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
                 "\tTime zone settings:\n\n" +
-                "\t\t/tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
+                "\t\t--tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
                 "\tDisk configuration settings:\n\n" +
-                "\t\t/partmode\t\tSets the partitioning mode. Possible values: interactive (ask during system setup); unattended (configure settings of Disk 0); custom (use a DiskPart script). Defaults to interactive if not set\n\n" +
+                "\t\t--partmode\t\tSets the partitioning mode. Possible values: interactive (ask during system setup); unattended (configure settings of Disk 0); custom (use a DiskPart script). Defaults to interactive if not set\n\n" +
                 "\tEdition settings: (USE ONE SWITCH BUT NOT ALL)\n\n" +
-                "\t\t/firmware\t\tConfigures the target system to use the product key embedded in the firmware (note, this requires a modern system)\n" +
-                "\t\t/generic\t\tSets generic edition settings using a configuration file. Defaults to Pro edition if not set\n" +
-                "\t\t/customkey\t\tSets a custom key, defined by <key> to be used for installation, which may or may not be valid\n\n" +
+                "\t\t--firmware\t\tConfigures the target system to use the product key embedded in the firmware (note, this requires a modern system)\n" +
+                "\t\t--generic\t\tSets generic edition settings using a configuration file. Defaults to Pro edition if not set\n" +
+                "\t\t--customkey\t\tSets a custom key, defined by <key> to be used for installation, which may or may not be valid\n\n" +
                 "\tUser settings:\n\n" +
-                "\t\t/msa     \t\tConfigures the target system to ask for a Microsoft account. No additional user account parameters need to be passed, or the system will not ask for the online account\n" +
-                "\t\t/customusers\t\tConfigures the users of the target system with a \"userAccounts.xml\" configuration file. Defaults to an interactive setup if not specified\n" +
-                "\t\t/autologon\t\tConfigures user automatic log-on settings. Possible values: firstadmin (first admin in account list); builtinadmin (built-in Windows admin account). Defaults to disabled auto log-on if not set\n" +
-                "\t\t/b64obscure\t\tObscures passwords with Base64\n" +
-                "\t\t/pwExpire\t\tConfigures password expiration settings (not recommended by NIST) given the value defined in <days>. Defaults to no password expiration if not set\n" +
-                "\t\t/lockout\t\tConfigures account lockout settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
+                "\t\t--msa     \t\tConfigures the target system to ask for a Microsoft account. No additional user account parameters need to be passed, or the system will not ask for the online account\n" +
+                "\t\t--customusers\t\tConfigures the users of the target system with a \"userAccounts.xml\" configuration file. Defaults to an interactive setup if not specified\n" +
+                "\t\t--autologon\t\tConfigures user automatic log-on settings. Possible values: firstadmin (first admin in account list); builtinadmin (built-in Windows admin account). Defaults to disabled auto log-on if not set\n" +
+                "\t\t--b64obscure\t\tObscures passwords with Base64\n" +
+                "\t\t--pwExpire\t\tConfigures password expiration settings (not recommended by NIST) given the value defined in <days>. Defaults to no password expiration if not set\n" +
+                "\t\t--lockout\t\tConfigures account lockout settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
                 "\tVirtual Machine Support:\n\n" +
-                "\t\t/vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools). Defaults to no VM support if not set\n\n" +
+                "\t\t--vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools). Defaults to no VM support if not set\n\n" +
                 "\tWireless settings:\n\n" +
-                "\t\t/wifi    \t\tConfigures wireless networking for the target system. Possible values: yes (configure settings with a wireless configuration file); no (skip configuration). Defaults to interactive if not set\n\n" +
+                "\t\t--wifi    \t\tConfigures wireless networking for the target system. Possible values: yes (configure settings with a wireless configuration file); no (skip configuration). Defaults to interactive if not set\n\n" +
                 "\tSystem telemetry:\n\n" +
-                "\t\t/telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set\n\n" +
+                "\t\t--telem     \t\tConfigures system telemetry. Possible values: yes (enable telemetry); no (disable telemetry). Defaults to interactive if not set\n\n" +
                 "\tPost-installation scripts:\n\n" +
-                "\t\t/customscripts\t\tConfigures post-installation scripts using a \"scripts.xml\" configuration file\n" +
-                "\t\t/hidewindows\t\tHides any post-installation script windows (don't do this unless you are not debugging your scripts)\n" +
-                "\t\t/restartexplorer\tRestarts File Explorer after running post-installation scripts\n\n" +
+                "\t\t--customscripts\t\tConfigures post-installation scripts using a \"scripts.xml\" configuration file\n" +
+                "\t\t--hidewindows\t\tHides any post-installation script windows (don't do this unless you are not debugging your scripts)\n" +
+                "\t\t--restartexplorer\tRestarts File Explorer after running post-installation scripts\n\n" +
                 "\tCustom configuration:\n\n" +
-                "\t\t/customcomponents\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
+                "\t\t--customcomponents\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
         }
 
         static async Task Main(string[] args)
@@ -171,29 +171,36 @@ namespace UnattendGen
                 }
             }
 
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX) && 
+                System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.X64)
+            {
+                // After macOS Tahoe, Apple will stop making Intel releases of macOS. Better inform the user
+                Console.WriteLine("After macOS Tahoe (macOS 26), Apple will stop making Intel builds of macOS. UnattendGen will stop working on your system when a new .NET release either stops supporting Intel releases or stops supporting macOS Tahoe. For now, it will continue working.\n");
+            }
+
             var generator = new AnswerFileGenerator();
 
-            if (Environment.GetCommandLineArgs().Contains("/debug"))
+            if (Environment.GetCommandLineArgs().Contains("--debug"))
                 debugMode = true;
 
             if (Environment.GetCommandLineArgs().Length >= 2)
             {
                 foreach (string cmdLine in Environment.GetCommandLineArgs())
                 {
-                    if (cmdLine == "/?")
+                    if (cmdLine == "--help")
                     {
                         ShowHelpMessage();
                         return;
                     }
-                    else if (cmdLine.StartsWith("/target", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--target", StringComparison.OrdinalIgnoreCase))
                     {
-                        targetPath = cmdLine.Replace("/target=", "").Trim();
+                        targetPath = cmdLine.Replace("--target=", "").Trim();
                     }
-                    else if (cmdLine.StartsWith("/regionfile", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--regionfile", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Region file specified. Reading settings...");
                         regionInteractive = false;
-                        regionFile = cmdLine.Replace("/regionfile=", "").Trim();
+                        regionFile = cmdLine.Replace("--regionfile=", "").Trim();
                         if (regionFile != "" && File.Exists(regionFile))
                         {
                             try
@@ -221,9 +228,9 @@ namespace UnattendGen
                             regionInteractive = true;
                         }
                     }
-                    else if (cmdLine.StartsWith("/architecture", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--architecture", StringComparison.OrdinalIgnoreCase))
                     {
-                        string[] architectures = cmdLine.Replace("/architecture=", "").Trim().Split(',');
+                        string[] architectures = cmdLine.Replace("--architecture=", "").Trim().Split(',');
                         if (architectures.Length > 0)
                         {
                             // For each architecture that we have detected, check if it is valid and add it to the list in the generator
@@ -254,31 +261,31 @@ namespace UnattendGen
                             }
                         }
                     }
-                    else if (cmdLine.StartsWith("/LabConfig", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--LabConfig", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("LabConfig: True", (debugMode | Debugger.IsAttached));
                         generator.SV_LabConfig = true;
                     }
-                    else if (cmdLine.StartsWith("/BypassNRO", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--BypassNRO", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("BypassNRO: True", (debugMode | Debugger.IsAttached));
                         Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
                         generator.SV_BypassNRO = true;
                     }
-                    else if (cmdLine.StartsWith("/ConfigSet", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--ConfigSet", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("Windows SIM Configuration Set: True", (debugMode | Debugger.IsAttached));
                         generator.UseConfigSet = true;
                     }
-                    else if (cmdLine.StartsWith("/computername", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--computername", StringComparison.OrdinalIgnoreCase))
                     {
-                        string name = cmdLine.Replace("/computername=", "").Trim();
+                        string name = cmdLine.Replace("--computername=", "").Trim();
                         if (!name.StartsWith("script:", StringComparison.OrdinalIgnoreCase))
                         {
                             name = ValidateComputerName(name);
 
                             if (name == "")
-                                Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("/computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
+                                Console.WriteLine($"WARNING: Computer name \"{cmdLine.Replace("--computername=", "").Trim()}\" is not valid. Continuing with a random computer name...");
 
                             DebugWrite($"Computer name: {name}", (debugMode | Debugger.IsAttached));
                         }
@@ -288,14 +295,14 @@ namespace UnattendGen
                         }
                         computerName = name;
                     }
-                    else if (cmdLine.StartsWith("/tzImplicit", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--tzImplicit", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("Time Zone is now implicit (determine from Regional Settings - See Respective Settings For More Info!!!)", (debugMode | Debugger.IsAttached));
                         generator.timeZoneImplicit = true;
                     }
-                    else if (cmdLine.StartsWith("/partmode", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--partmode", StringComparison.OrdinalIgnoreCase))
                     {
-                        switch (cmdLine.Replace("/partmode=", "").Trim())
+                        switch (cmdLine.Replace("--partmode=", "").Trim())
                         {
                             case "interactive":
                                 partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
@@ -353,18 +360,18 @@ namespace UnattendGen
                                 }
                                 break;
                             default:
-                                Console.WriteLine($"WARNING: Unknown partition mode: {cmdLine.Replace("/partmode=", "").Trim()}. Continuing with Interactive...");
+                                Console.WriteLine($"WARNING: Unknown partition mode: {cmdLine.Replace("--partmode=", "").Trim()}. Continuing with Interactive...");
                                 partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
                                 break;
                         }
                     }
-                    else if (cmdLine.StartsWith("/firmware", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--firmware", StringComparison.OrdinalIgnoreCase))
                     {
                         generator.editionFirmwareChosen = true;
                         genericChosen = false;
                         DebugWrite("The unattended answer file will use the product key embedded in the firmware", (debugMode | Debugger.IsAttached));
                     }
-                    else if (cmdLine.StartsWith("/generic", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--generic", StringComparison.OrdinalIgnoreCase))
                     {
                         generator.genericEdition = defaultEdition;
                         Console.WriteLine("INFO: The unattended answer file will use a generic product key. Reading edition configuration...");
@@ -391,20 +398,20 @@ namespace UnattendGen
                             generator.genericEdition = defaultEdition;
                         }
                     }
-                    else if (cmdLine.StartsWith("/customkey", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--customkey", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: The unattended answer file will not use a generic product key");
                         genericChosen = false;
-                        string key = cmdLine.Replace("/customkey=", "").Trim();
+                        string key = cmdLine.Replace("--customkey=", "").Trim();
                         DebugWrite($"Edition settings:\n\n\t- Product key: {key}\n", (debugMode | Debugger.IsAttached));
                         generator.customKey = key;
                     }
-                    else if (cmdLine.StartsWith("/msa", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--msa", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("The system will ask you for a Microsoft account. 24H2 does not present ways to bypass this with bypassnro, unless you join a domain", (debugMode | Debugger.IsAttached));
                         generator.msaInteractive = true;
                     }
-                    else if (cmdLine.StartsWith("/customusers", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--customusers", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Manual user configuration will be used. Reading user list...");
                         accountsInteractive = false;
@@ -455,12 +462,12 @@ namespace UnattendGen
                             accountsInteractive = true;
                         }
                     }
-                    else if (cmdLine.StartsWith("/autologon", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--autologon", StringComparison.OrdinalIgnoreCase))
                     {
                         if (!accountsInteractive)
                         {
                             Console.WriteLine("INFO: Configuring auto-logon settings...");
-                            switch (cmdLine.Replace("/autologon=", "").Trim())
+                            switch (cmdLine.Replace("--autologon=", "").Trim())
                             {
                                 case "firstadmin":
                                     DebugWrite("Setting auto-logon to first admin...", (debugMode | Debugger.IsAttached));
@@ -505,20 +512,20 @@ namespace UnattendGen
                         }
                         else
                         {
-                            Console.WriteLine("INFO: Auto-logon settings will not be configured since you need to configure accounts during Setup. Please pass the \"/customusers\" flag after providing a user data file with the name of \"userAccounts.xml\" to be able to configure these settings");
+                            Console.WriteLine("INFO: Auto-logon settings will not be configured since you need to configure accounts during Setup. Please pass the \"--customusers\" flag after providing a user data file with the name of \"userAccounts.xml\" to be able to configure these settings");
                         }
                     }
-                    else if (cmdLine.StartsWith("/b64obscure", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--b64obscure", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("User passwords will be obscured with Base64", (debugMode | Debugger.IsAttached));
                         generator.Base64Obscure = true;
                     }
-                    else if (cmdLine.StartsWith("/pwExpire", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--pwExpire", StringComparison.OrdinalIgnoreCase))
                     {
                         try
                         {
                             Console.WriteLine("INFO: Configuring password expiration settings...");
-                            generator.ExpirationDays = Convert.ToInt32(cmdLine.Replace("/pwExpire=", "").Trim());
+                            generator.ExpirationDays = Convert.ToInt32(cmdLine.Replace("--pwExpire=", "").Trim());
                             DebugWrite($"Password expiration: {generator.ExpirationDays} day(s)", (debugMode | Debugger.IsAttached));
                         }
                         catch
@@ -526,9 +533,9 @@ namespace UnattendGen
                             generator.ExpirationDays = 0;
                         }
                     }
-                    else if (cmdLine.StartsWith("/lockout", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--lockout", StringComparison.OrdinalIgnoreCase))
                     {
-                        switch (cmdLine.Replace("/lockout=", "").Trim())
+                        switch (cmdLine.Replace("--lockout=", "").Trim())
                         {
                             case "yes":
                                 Console.WriteLine("INFO: Enforcing Account Lockout policy...");
@@ -560,10 +567,10 @@ namespace UnattendGen
                                 break;
                         }
                     }
-                    else if (cmdLine.StartsWith("/vm", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--vm", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Configuring Virtual Machine Support...");
-                        switch (cmdLine.Replace("/vm=", "").Trim())
+                        switch (cmdLine.Replace("--vm=", "").Trim())
                         {
                             case "vbox_gas":
                                 DebugWrite("VM Solution: VirtualBox Guest Additions", (debugMode | Debugger.IsAttached));
@@ -578,14 +585,14 @@ namespace UnattendGen
                                 vm = AnswerFileGenerator.VirtualMachineSolution.VirtIO;
                                 break;
                             default:
-                                Console.WriteLine($"WARNING: Unknown VM solution: {cmdLine.Replace("/vm=", "").Trim()}. Continuing without VM support...");
+                                Console.WriteLine($"WARNING: Unknown VM solution: {cmdLine.Replace("--vm=", "").Trim()}. Continuing without VM support...");
                                 break;
                         }
                     }
-                    else if (cmdLine.StartsWith("/wifi", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--wifi", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Configuring Wireless Networks...");
-                        switch (cmdLine.Replace("/wifi=", "").Trim())
+                        switch (cmdLine.Replace("--wifi=", "").Trim())
                         {
                             case "yes":
                                 Console.WriteLine("INFO: Wireless settings will be configured. Reading configuration file...");
@@ -632,10 +639,10 @@ namespace UnattendGen
                                 break;
                         }
                     }
-                    else if (cmdLine.StartsWith("/telem", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--telem", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Configuring system telemetry settings...");
-                        switch (cmdLine.Replace("/telem=", "").Trim())
+                        switch (cmdLine.Replace("--telem=", "").Trim())
                         {
                             case "yes":
                                 DebugWrite("Enabling system telemetry...", (debugMode | Debugger.IsAttached));
@@ -646,12 +653,12 @@ namespace UnattendGen
                                 telemetry = AnswerFileGenerator.SystemTelemetry.No;
                                 break;
                             default:
-                                Console.WriteLine($"WARNING: Unknown telemetry configuration: {cmdLine.Replace("/telem=", "").Trim()}. Continuing with Interactive settings...");
+                                Console.WriteLine($"WARNING: Unknown telemetry configuration: {cmdLine.Replace("--telem=", "").Trim()}. Continuing with Interactive settings...");
                                 telemetry = AnswerFileGenerator.SystemTelemetry.Interactive;
                                 break;
                         }
                     }
-                    else if (cmdLine.StartsWith("/customscripts", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--customscripts", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Configuring post-installation scripts...");
                         if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "scripts.xml")))
@@ -700,17 +707,17 @@ namespace UnattendGen
                             generator.PostInstallScripts = new List<PostInstallScript>();
                         }
                     }
-                    else if (cmdLine.StartsWith("/hidewindows", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--hidewindows", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("Script windows will be hidden", (debugMode | Debugger.IsAttached));
                         generator.HideScriptWindows = true;
                     }
-                    else if (cmdLine.StartsWith("/restartexplorer", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--restartexplorer", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("File Explorer will be restarted after running post-installation scripts...", (debugMode | Debugger.IsAttached));
                         generator.RestartExplorer = true;
                     }
-                    else if (cmdLine.StartsWith("/customcomponents", StringComparison.OrdinalIgnoreCase))
+                    else if (cmdLine.StartsWith("--customcomponents", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("INFO: Configuring custom components...");
                         try
