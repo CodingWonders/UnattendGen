@@ -1028,7 +1028,7 @@ namespace UnattendGen
                             new ScriptComputerNameSettings(
                                 Script: computerName.Replace("script:", "")) :
                             new CustomComputerNameSettings(
-                                name: computerName),
+                                ComputerName: computerName),
                             TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
                                 TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
                             WifiSettings = WirelessInteractive ? new InteractiveWifiSettings() : WirelessSkip ? new SkipWifiSettings() : new ParameterizedWifiSettings(
