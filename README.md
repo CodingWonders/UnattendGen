@@ -14,7 +14,7 @@ This project uses Christoph Schneegans' unattended answer file generation librar
 When running the program with the `/?` argument, you will see the following usage pattern:
 
 ```
-UnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }[,...]] [--LabConfig] [--BypassNRO] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--restartexplorer] [--customcomponents]
+UnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }[,...]] [--LabConfig] [--BypassNRO] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--restartexplorer] [--customcomponents]
 ```
 
 When running the program with no arguments, it will generate a basic answer file with default settings. If you want to avoid this behavior and create your custom answer file, you will need to pass the appropriate switches.
@@ -83,7 +83,7 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
-| `--vm` | Configures Virtual Machine support based on a provider. You can use either of the following options: `vbox_gas` (use with VirtualBox), `vmware` (use with VMware hypervisors); or `virtio` (use with QEMU-based hypervisors). If this switch is not specified, UnattendGen will disable enhanced support from your VM provider |
+| `--vm` | Configures Virtual Machine support based on a provider. You can use either of the following options: `vbox_gas` (use with VirtualBox), `vmware` (use with VMware hypervisors); or `virtio` (use with QEMU-based hypervisors), `parallels` (use with Parallels hypervisors). If this switch is not specified, UnattendGen will disable enhanced support from your VM provider |
 
 **Wireless settings**
 
