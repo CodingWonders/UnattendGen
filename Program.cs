@@ -56,7 +56,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--ConfigSet] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
+                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--ConfigSet] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t--help         \t\tShows this help screen\n" +
@@ -85,7 +85,7 @@ namespace UnattendGen
                 "\t\t--pwExpire\t\tConfigures password expiration settings (not recommended by NIST) given the value defined in <days>. Defaults to no password expiration if not set\n" +
                 "\t\t--lockout\t\tConfigures account lockout settings. Possible values: yes (enable settings determined by a config file); no (disable settings - NOT RECOMMENDED)\n\n" +
                 "\tVirtual Machine Support:\n\n" +
-                "\t\t--vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools). Defaults to no VM support if not set\n\n" +
+                "\t\t--vm        \t\tConfigures virtual machine support. Possible values: vbox_gas (VirtualBox Guest Additions); vmware (VMware Tools); virtio (VirtIO Guest Tools); parallels (Parallels Tools). Defaults to no VM support if not set\n\n" +
                 "\tWireless settings:\n\n" +
                 "\t\t--wifi    \t\tConfigures wireless networking for the target system. Possible values: yes (configure settings with a wireless configuration file); no (skip configuration). Defaults to interactive if not set\n\n" +
                 "\tSystem telemetry:\n\n" +
@@ -584,6 +584,10 @@ namespace UnattendGen
                                 DebugWrite("VM Solution: VirtIO Guest Tools", (debugMode | Debugger.IsAttached));
                                 vm = AnswerFileGenerator.VirtualMachineSolution.VirtIO;
                                 break;
+                            case "parallels":
+                                DebugWrite("VM Solution: Parallels", (debugMode | Debugger.IsAttached));
+                                vm = AnswerFileGenerator.VirtualMachineSolution.Parallels;
+                                break;
                             default:
                                 Console.WriteLine($"WARNING: Unknown VM solution: {cmdLine.Replace("--vm=", "").Trim()}. Continuing without VM support...");
                                 break;
@@ -796,7 +800,8 @@ namespace UnattendGen
             No,
             VBox_GAs,
             VMware_Tools,
-            VirtIO
+            VirtIO,
+            Parallels
         }
 
         public enum SystemTelemetry
@@ -1061,21 +1066,10 @@ namespace UnattendGen
                             ),
                             BypassRequirementsCheck = SV_LabConfig,
                             BypassNetworkCheck = SV_BypassNRO,
-                            VBoxGuestAdditions = virtualMachine switch
-                            {
-                                VirtualMachineSolution.VBox_GAs => true,
-                                _ => false
-                            },
-                            VMwareTools = virtualMachine switch
-                            {
-                                VirtualMachineSolution.VMware_Tools => true,
-                                _ => false
-                            },
-                            VirtIoGuestTools = virtualMachine switch
-                            {
-                                VirtualMachineSolution.VirtIO => true,
-                                _ => false
-                            },
+                            VBoxGuestAdditions = (virtualMachine == VirtualMachineSolution.VBox_GAs),
+                            VMwareTools = (virtualMachine == VirtualMachineSolution.VMware_Tools),
+                            VirtIoGuestTools = (virtualMachine == VirtualMachineSolution.VirtIO),
+                            ParallelsTools = (virtualMachine == VirtualMachineSolution.Parallels),
                             UseConfigurationSet = UseConfigSet,
                             HidePowerShellWindows = HideScriptWindows,
                             DeleteWindowsOld = true
