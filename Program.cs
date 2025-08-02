@@ -95,7 +95,7 @@ namespace UnattendGen
                 "\t\t--hidewindows\t\tHides any post-installation script windows (don't do this unless you are not debugging your scripts)\n" +
                 "\t\t--restartexplorer\tRestarts File Explorer after running post-installation scripts\n\n" +
                 "\tCustom configuration:\n\n" +
-                "\t\t--customcomponents\tConfigures custom components for your unattended answer file using a \"components.xml\" configuration file");
+                "\t\t--customcomponents\tConfigures custom components for your unattended answer file using XML configuration files");
         }
 
         static async Task Main(string[] args)
