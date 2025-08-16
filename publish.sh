@@ -80,11 +80,45 @@ DOTNET_CLI_TELEMETRY_OPTOUT=1
 #   - Set to 0 to remove compatibility
 #   After .NET either stops supporting Intel systems or macOS Tahoe, this option will be disabled
 UNATTENDGEN_ADD_OSX_X64_COMPAT=1
+# - This option controls execution on Windows Subsystem for Linux instances
+#   - Set to 2 to forbid builds on WSL
+#   - Set to 1 to ask the user whether to build on WSL
+#   - Set to 0 to allow builds on WSL
+UNATTENDGEN_CONTROL_WSL=1
+
+WINBUILDALLOWPREFERENCE=""
+case $UNATTENDGEN_CONTROL_WSL in
+	0) WINBUILDALLOWPREFERENCE="Allow" ;;
+	1) WINBUILDALLOWPREFERENCE="Ask" ;;
+	2) WINBUILDALLOWPREFERENCE="Block" ;;
+esac
 
 echo -e "\nOPTIONS:"
 echo "- Opt out of dotnet telemetry: $DOTNET_CLI_TELEMETRY_OPTOUT"
 echo "- Compile build for Intel macOS: $UNATTENDGEN_ADD_OSX_X64_COMPAT"
+echo "- Build policy for WSL: $UNATTENDGEN_CONTROL_WSL ($WINBUILDALLOWPREFERENCE)"
 echo -e "\n"
+
+if [[ $UNATTENDGEN_CONTROL_WSL -gt 0 ]]; then
+	if [[ "$(env | grep -e "^WSL" | wc -l)" -gt 0 ]]; then
+		# Running on a Windows environment
+		case $UNATTENDGEN_CONTROL_WSL in
+			1) 
+				echo "You are running this script in a Windows environment. It is recommended that you use the Batch script (publish.bat) instead for a more native experience."
+				read -p "Continue? (Y/N)" -sn1 option
+				if [[ "$option" != "Y" ]]; then
+					clear
+					exit
+				fi
+				;;
+			2)
+				echo "You cannot run this script in a Windows environment. Please use the Batch script instead."
+				exit 
+				;;
+		esac
+		echo -e "\n"
+	fi
+fi
 
 echo "Publishing self-contained binaries..."
 
