@@ -42,6 +42,10 @@ echo Publishing self-contained binaries...
 for %%a in (win-x86 win-x64 win-arm64 osx-x64 osx-arm64 linux-x64 linux-arm64) do (
 	echo ------------------------ Building self-contained binary for target %%a ------------------------
 	:: Yes, this is not the ideal way to do this, but batch is so archaic there's no CONTINUE statement
+	set target="%%a"
+	if "!target:~1,3!" NEQ "win" (
+		call :nonwindowswarning %%a
+	)
 	if "%%a" == "osx-x64" (
 		if !UNATTENDGEN_ADD_OSX_X64_COMPAT! EQU 0 (
 			echo Platform %%a not supported by publish flags.
@@ -69,6 +73,10 @@ echo Publishing regular binaries...
 for %%a in (win-x86 win-x64 win-arm64 osx-x64 osx-arm64 linux-x64 linux-arm64) do (
 	echo ------------------------ Building regular binary for target %%a ------------------------
 	:: Yes, this is not the ideal way to do this, but batch is so archaic there's no CONTINUE statement
+	set target="%%a"
+	if "!target:~1,3!" NEQ "win" (
+		call :nonwindowswarning %%a
+	)
 	if "%%a" == "osx-x64" (
 		if !UNATTENDGEN_ADD_OSX_X64_COMPAT! EQU 0 (
 			echo Platform %%a not supported by publish flags.
@@ -90,3 +98,9 @@ echo Zipping regular binaries...
 powershell -ExecutionPolicy Bypass ".\RegularZip.ps1"
 
 ENDLOCAL
+exit /b
+
+:nonwindowswarning
+for /f %%A in ('echo prompt $E ^| cmd') do set "ESC=%%A"
+echo %ESC%[30;43mTarget %1 is not a Windows platform. UNIX builds will be made, however, they WON'T be executable. The end-user will need%ESC%[0m
+echo %ESC%[30;43mto run "chmod +x ./UnattendGen" to mark program as executable.%ESC%[0m
