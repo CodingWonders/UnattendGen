@@ -149,6 +149,9 @@ namespace UnattendGen
             SystemComponent defaultComponent = new SystemComponent("Microsoft-Windows-Shell-Setup", defaultPasses, "");
             defaultComponents.Add(defaultComponent);
 
+            List<Schneegans.Unattend.ProcessorArchitecture> defaultArchitectures = new List<Schneegans.Unattend.ProcessorArchitecture>();
+            defaultArchitectures.Add(Schneegans.Unattend.ProcessorArchitecture.amd64);
+
             Console.WriteLine($"UnattendGen{(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DT")) ? " for DISMTools" : "")}, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -779,6 +782,11 @@ namespace UnattendGen
             {
                 Console.WriteLine("WARNING: No users have been specified. Continuing with Interactive settings...");
                 generator.accountsInteractive = true;
+            }
+            if ((generator.processorArchitectures is null) || (generator.processorArchitectures.Count <= 0))
+            {
+                Console.WriteLine("WARNING: No architectures have been specified. Continuing with default architectures...");
+                generator.processorArchitectures = defaultArchitectures;
             }
 
             await generator.GenerateAnswerFile(targetPath != "" ? targetPath : "unattend.xml");
