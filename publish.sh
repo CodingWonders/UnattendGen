@@ -33,6 +33,9 @@ function selfcontainedzip {
 			"linux-arm64") target_zip_name="UnattendGen-arm64--Linux-SelfContained.zip" ;;
 		esac
 		cd "$folder" || exit
+		if [[ -f "./UnattendGen" ]]; then
+			chmod +x "./UnattendGen"
+		fi
 		zip -r "../../$target_zip_name" ./*
 		cd - >/dev/null
 	done
@@ -59,6 +62,9 @@ function regularzip {
 			"linux-arm64") target_zip_name="UnattendGen-arm64-Linux.zip" ;;
 		esac
 		cd "$folder" || exit
+		if [[ -f "./UnattendGen" ]]; then
+			chmod +x "./UnattendGen"
+		fi
 		zip -r "../$target_zip_name" ./*
 		cd - >/dev/null
 	done
