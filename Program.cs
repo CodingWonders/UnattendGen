@@ -684,6 +684,16 @@ namespace UnattendGen
                                             Console.WriteLine("--- Post-installation script:\n");
 
                                             Console.WriteLine($"- Contents: \n\n\t{script.ScriptContent.Replace("\n", "\n\t").Trim()}\n");
+                                            if (script.Extension != PostInstallScript.ScriptExtension.NoFile)
+                                            {
+                                                Console.WriteLine($"- Script Type: {script.Extension switch
+                                                {
+                                                    PostInstallScript.ScriptExtension.PowerShell => "PowerShell (.PS1)",
+                                                    PostInstallScript.ScriptExtension.Batch => "Batch (.BAT, .CMD, .NT)",
+                                                    PostInstallScript.ScriptExtension.Reg => "Windows Registry",
+                                                    _ => "Unknown"
+                                                }}");
+                                            }
                                             Console.WriteLine($"- When to apply: {script.Stage switch
                                             {
                                                 PostInstallScript.StageContext.System => "during system setup",
@@ -958,9 +968,11 @@ namespace UnattendGen
                                         PostInstallScript.StageContext.NTUserHiveModify => ScriptPhase.DefaultUser,
                                         _ => ScriptPhase.System
                                     },
-                                    script.Stage switch
+                                    script.Extension switch
                                     {
-                                        PostInstallScript.StageContext.NTUserHiveModify => ScriptType.Reg,
+                                        PostInstallScript.ScriptExtension.PowerShell => ScriptType.Ps1,
+                                        PostInstallScript.ScriptExtension.Batch => ScriptType.Cmd,
+                                        PostInstallScript.ScriptExtension.Reg => ScriptType.Reg,
                                         _ => ScriptType.Ps1
                                     }));
                         }

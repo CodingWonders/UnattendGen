@@ -44,17 +44,45 @@ namespace UnattendGen.UserSettings
             NTUserHiveModify
         }
 
+        public enum ScriptExtension
+        {
+            /// <summary>
+            /// PowerShell script
+            /// </summary>
+            PowerShell,
+            /// <summary>
+            /// Batch script
+            /// </summary>
+            Batch,
+            /// <summary>
+            /// Exported Registry File
+            /// </summary>
+            Reg,
+            /// <summary>
+            /// Unknown script type
+            /// </summary>
+            Unknown,
+            /// <summary>
+            /// Independent command. The script did not come from a file
+            /// </summary>
+            NoFile
+        }
+
+        public ScriptExtension Extension;
+
         public StageContext Stage;
 
         public PostInstallScript()
         {
             ScriptContent = "Write-Host \"Hello World\"";
+            Extension = ScriptExtension.PowerShell;
             Stage = StageContext.System;
         }
 
-        public PostInstallScript(string? scriptContent, StageContext stage)
+        public PostInstallScript(string? scriptContent, ScriptExtension extension, StageContext stage)
         {
             ScriptContent = scriptContent;
+            Extension = extension;
             Stage = stage;
         }
 
@@ -81,6 +109,8 @@ namespace UnattendGen.UserSettings
 
                                 string scriptPath = "";
 
+                                ScriptExtension extension = ScriptExtension.Unknown;
+
                                 // Let's see if this item is not bogus
                                 if (!string.IsNullOrEmpty(scriptContent))
                                 {
@@ -97,6 +127,26 @@ namespace UnattendGen.UserSettings
                                         }
                                         Console.WriteLine($"INFO: Getting contents of file \"{Path.GetFileName(scriptPath)}\"...");
                                         scriptContent = File.ReadAllText(scriptPath);
+
+                                        // Let's get to know our file better based on its extension. If we got an unknown file type,
+                                        // then we discard the file and move on.
+                                        extension = Path.GetExtension(scriptPath).ToLowerInvariant() switch
+                                        {
+                                            ".bat" or ".cmd" or ".nt" => ScriptExtension.Batch,
+                                            ".ps1" => ScriptExtension.PowerShell,
+                                            ".reg" => ScriptExtension.Reg,
+                                            _ => ScriptExtension.Unknown
+                                        };
+
+                                        if (extension == ScriptExtension.Unknown)
+                                        {
+                                            Console.WriteLine($"WARNING: the specified file (\"{Path.GetFileName(scriptPath)}\") does not appear to have a valid extension. Skipping...");
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        extension = ScriptExtension.NoFile;
                                     }
                                 }
 
@@ -109,36 +159,22 @@ namespace UnattendGen.UserSettings
                                     _ => throw new Exception("Invalid script stage")
                                 };
 
-                                if (stage == StageContext.NTUserHiveModify)
+                                if ((stage == StageContext.NTUserHiveModify) && (extension == ScriptExtension.Reg))
                                 {
-                                    // Verify that what we are dealing with is a REG file. Check both extension and header
-                                    if (scriptPath != null)
+                                    // Check header
+                                    if (!scriptContent.StartsWith("Windows Registry Editor Version 5.00"))
                                     {
-                                        // Check extension
-                                        if (Path.GetExtension(scriptPath) == ".reg")
-                                        {
-                                            // Check header
-                                            if (!scriptContent.StartsWith("Windows Registry Editor Version 5.00"))
-                                            {
-                                                Console.WriteLine($"WARNING: the specified file is of REG type, but its header is not valid. Skipping...");
-                                                continue;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine($"WARNING: the specified file is not of REG type. Skipping...");
-                                            continue;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Outright deny it
-                                        Console.WriteLine($"WARNING: no file has been specified. Skipping...");
+                                        Console.WriteLine($"WARNING: the specified file is of REG type, but its header is not valid. Skipping...");
                                         continue;
                                     }
                                 }
+                                else if ((stage == StageContext.NTUserHiveModify) && (extension != ScriptExtension.Reg))
+                                {
+                                    Console.WriteLine($"WARNING: to modify the NTUSER.DAT hive, the file must be of REG type. Skipping...");
+                                    continue;
+                                }
 
-                                scriptList.Add(new PostInstallScript(scriptContent, stage));
+                                scriptList.Add(new PostInstallScript(scriptContent, extension, stage));
                             }
                         }
                     }
