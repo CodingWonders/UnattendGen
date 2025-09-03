@@ -8,15 +8,15 @@ fi
 
 framework="net9.0"
 
-if [[ -d "./bin/release/$framework" ]]; then
-	rm -rf "./bin/release/$framework"
+if [[ -d "./bin/Release/$framework" ]]; then
+	rm -rf "./bin/Release/$framework"
 fi
 
 function selfcontainedzip {
 	if [[ $# -lt 1 ]]; then
 		return
 	fi
-	for folder in $(find "./bin/release/$1/sc" -mindepth 1 -type d); do
+	for folder in $(find "./bin/Release/$1/sc" -mindepth 1 -type d); do
 		if [[ ! -d "$folder" ]]; then
 			continue
 		fi
@@ -45,7 +45,7 @@ function regularzip {
 	if [[ $# -lt 1 ]]; then
 		return
 	fi
-	for folder in $(find "./bin/release/$1" -mindepth 1 -type d); do
+	for folder in $(find "./bin/Release/$1" -mindepth 1 -type d); do
 		if [[ ! -d "$folder" ]]; then
 			continue
 		fi
@@ -137,11 +137,11 @@ for architecture in win-x86 win-x64 win-arm64 osx-x64 osx-arm64 linux-x64 linux-
 		echo -e "\nAfter a .NET version either stops supporting Intel systems or macOS Tahoe, both this flag and the $architecture target will be removed from this script."
 		continue
 	fi
-	dotnet publish -r:$architecture --sc -o "bin/release/$framework/sc/$architecture" --framework $framework
+	dotnet publish -r:$architecture --sc -o "bin/Release/$framework/sc/$architecture" --framework $framework
 done
 
 selfcontainedzip $framework
-rm -rf "bin/release/$framework/sc" 2>/dev/null
+rm -rf "bin/Release/$framework/sc" 2>/dev/null
 
 echo "Publishing regular binaries..."
 
@@ -155,7 +155,7 @@ for architecture in win-x86 win-x64 win-arm64 osx-x64 osx-arm64 linux-x64 linux-
 		continue
 	fi
 	dotnet publish -r:$architecture --framework $framework
-	rm -rf "bin/release/$framework/$architecture/publish"
+	rm -rf "bin/Release/$framework/$architecture/publish"
 done
 
 regularzip $framework
