@@ -110,6 +110,10 @@ When running the program with no arguments, it will generate a basic answer file
 |:--:|:--|
 | `--customcomponents` | Configures custom components using a configuration file. If this switch is not specified, UnattendGen will use default configurations and passes |
 
+### Graphical User Interfaces
+
+Currently, the only graphical user interface for UnattendGen is built into DISMTools. However, future plans include a cross-platform GUI for Linux and macOS. If you want to help me make it happen, feel free to contribute to this repository.
+
 ### Configuration files
 
 You can look at example configuration files with the following links:
