@@ -152,6 +152,8 @@ namespace UnattendGen
             List<Schneegans.Unattend.ProcessorArchitecture> defaultArchitectures = new List<Schneegans.Unattend.ProcessorArchitecture>();
             defaultArchitectures.Add(Schneegans.Unattend.ProcessorArchitecture.amd64);
 
+            bool noSensitiveFiles = false;
+
             Console.WriteLine($"UnattendGen{(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DT")) ? " for DISMTools" : "")}, version {Assembly.GetEntryAssembly().GetName().Version.ToString()}");
             Console.WriteLine("-------------------------------------------------");
             Console.WriteLine($"Program: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. CodingWonders Software\nLibrary: (c) {GetCopyrightTimespan(2024, DateTime.Today.Year)}. Christoph Schneegans");
@@ -765,6 +767,11 @@ namespace UnattendGen
                             generator.SystemComponents = defaultComponents;
                         }
                     }
+                    else if (cmdLine.StartsWith("--nosensitivefiles", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("INFO: removing sensitive files after installation");
+                        noSensitiveFiles = true;
+                    }
                     if (cmdLine != Assembly.GetExecutingAssembly().Location)
                         DebugWrite($"Successfully parsed command-line switch {cmdLine}", (debugMode | Debugger.IsAttached));
                 }
@@ -798,6 +805,8 @@ namespace UnattendGen
                 Console.WriteLine("WARNING: No architectures have been specified. Continuing with default architectures...");
                 generator.processorArchitectures = defaultArchitectures;
             }
+
+            generator.noSensitiveFiles = noSensitiveFiles;
 
             await generator.GenerateAnswerFile(targetPath != "" ? targetPath : "unattend.xml");
         }
@@ -892,6 +901,8 @@ namespace UnattendGen
         public bool RestartExplorer;
 
         public List<SystemComponent>? SystemComponents = new List<SystemComponent>();
+
+        public bool noSensitiveFiles;
 
         public async Task GenerateAnswerFile(string targetPath)
         {
@@ -1092,7 +1103,8 @@ namespace UnattendGen
                             ParallelsTools = (virtualMachine == VirtualMachineSolution.Parallels),
                             UseConfigurationSet = UseConfigSet,
                             HidePowerShellWindows = HideScriptWindows,
-                            DeleteWindowsOld = true
+                            DeleteWindowsOld = true,
+                            KeepSensitiveFiles = !noSensitiveFiles
                         }
                         );
                     /*
@@ -1134,6 +1146,7 @@ namespace UnattendGen
                     Console.WriteLine("Pausing execution state and exiting after 5 seconds...");
 
                     Thread.Sleep(5000);
+                    Environment.Exit(ex.HResult);
                 }
             });
         }
