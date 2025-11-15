@@ -9,6 +9,16 @@
 
 This project uses Christoph Schneegans' unattended answer file generation library for core functionality. Its license file, including its source files, can be found in the `Library` folder.
 
+## Compatibility
+
+UnattendGen is compatible with the following operating systems:
+
+- **Windows**: Windows 7/Server 2008 R2 (SP1) and later
+- **Linux**: Any distribution with .NET 9 support
+- **macOS**: Any version with .NET 9 support
+
+![Server 2008 R2](./res/win2008r2_compat.png)
+
 ## Usage
 
 When running the program with the `/?` argument, you will see the following usage pattern:
