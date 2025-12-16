@@ -15,7 +15,7 @@ if exist "bin\release\net9.0" (
 cls
 
 echo UnattendGen Release Publish
-echo (c) 2024-2025. CodingWonders Software
+echo (c) 2024-2026. CodingWonders Software
 
 REM Publish Script Options
 REM ----------------------------------------------------------

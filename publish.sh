@@ -73,7 +73,7 @@ function regularzip {
 clear
 
 echo "UnattendGen Release Publish (Unix systems)"
-echo "(c) 2025. CodingWonders Software"
+echo "(c) 2025-2026. CodingWonders Software"
 
 # Publish Script Options
 # ------------------------------------------------------------
