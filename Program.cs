@@ -984,6 +984,8 @@ namespace UnattendGen
                                         PostInstallScript.ScriptExtension.PowerShell => ScriptType.Ps1,
                                         PostInstallScript.ScriptExtension.Batch => ScriptType.Cmd,
                                         PostInstallScript.ScriptExtension.Reg => ScriptType.Reg,
+                                        PostInstallScript.ScriptExtension.VBScript => ScriptType.Vbs,
+                                        PostInstallScript.ScriptExtension.JScript => ScriptType.Js,
                                         _ => ScriptType.Ps1
                                     }));
                         }

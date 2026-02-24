@@ -59,6 +59,14 @@ namespace UnattendGen.UserSettings
             /// </summary>
             Reg,
             /// <summary>
+            /// Visual Basic Script file
+            /// </summary>
+            VBScript,
+            /// <summary>
+            /// JScript file
+            /// </summary>
+            JScript,
+            /// <summary>
             /// Unknown script type
             /// </summary>
             Unknown,
@@ -135,6 +143,8 @@ namespace UnattendGen.UserSettings
                                             ".bat" or ".cmd" or ".nt" => ScriptExtension.Batch,
                                             ".ps1" => ScriptExtension.PowerShell,
                                             ".reg" => ScriptExtension.Reg,
+                                            ".vbs" or ".vbe" or ".wsf" or ".wsc" => ScriptExtension.VBScript,
+                                            ".js" or ".jse" => ScriptExtension.JScript,
                                             _ => ScriptExtension.Unknown
                                         };
 
