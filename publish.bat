@@ -97,6 +97,7 @@ for %%a in (win-x86 win-x64 win-arm64 osx-x64 osx-arm64 linux-x64 linux-arm64) d
 echo Zipping regular binaries...
 powershell -ExecutionPolicy Bypass ".\RegularZip.ps1"
 
+echo Completed.
 ENDLOCAL
 exit /b
 

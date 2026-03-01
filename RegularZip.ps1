@@ -2,7 +2,7 @@ if ((Get-ChildItem "bin\Release\net9.0" -Exclude "sc").Count -gt 0)
 {
 	foreach ($dir in $(Get-ChildItem "bin\Release\net9.0" -Exclude @("sc", "*.zip") -Directory))
 	{
-		Write-Host "Zipping $($dir.FullName)..." -BackgroundColor Black -ForegroundColor DarkYellow
+		Write-Debug "Zipping $($dir.FullName)..."
 		# Determine platform
 		if ($dir.Name.Contains("win")) {
 			Compress-Archive -Path "$($dir.FullName)\*" -DestinationPath "bin\Release\net9.0\$($dir.Name.Replace("win", $([IO.Path]::GetFileName(((Get-Location).Path)))))-Windows.zip"
