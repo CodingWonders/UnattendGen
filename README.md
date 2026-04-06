@@ -1,5 +1,5 @@
 ![Banner](./res/banner.png)
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/hJJTrMNP5p?theme=default-inverted&style=for-the-badge)](https://discord.gg/vPrZXHPP)
+[![](https://dcbadge.limes.pink/api/server/https://discord.gg/hJJTrMNP5p?theme=default-inverted&style=for-the-badge)](https://discord.gg/5TxEmKXNwu)
 
 **UnattendGen** is a console application that generates unattended answer files given certain parameters.
 
