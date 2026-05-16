@@ -35,11 +35,7 @@ namespace UnattendGen.UserSettings
             /// <summary>
             /// The Recovery Environment will be installed on a separate disk partition
             /// </summary>
-            Partition,
-            /// <summary>
-            /// The Recovery Environment will be installed on the Windows installation
-            /// </summary>
-            Windows
+            Partition
         }
 
         /// <summary>
@@ -93,7 +89,7 @@ namespace UnattendGen.UserSettings
                                 {
                                     "No" => RecoveryEnvironmentMode.None,
                                     "WinRE" => RecoveryEnvironmentMode.Partition,
-                                    "Windows" => RecoveryEnvironmentMode.Windows,
+                                    "Windows" => RecoveryEnvironmentMode.Partition,     // silently go to partition-based mode for compatibility
                                     _ => RecoveryEnvironmentMode.Partition
                                 };
 

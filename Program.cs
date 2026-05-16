@@ -56,7 +56,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--ConfigSet] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
+                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--ConfigSet] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t--help         \t\tShows this help screen\n" +
@@ -66,13 +66,13 @@ namespace UnattendGen
                 "\tBasic system settings:\n\n" +
                 "\t\t--architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set. You can configure multiple architectures by separating them with commas (,)\n" +
                 "\t\t--LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
-                "\t\t--BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only, may not work on Windows 11 24H2)\n" +
+                "\t\t--BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only)\n" +
                 "\t\t--ConfigSet\t\tConfigures the target system to use a configuration set or distribution share. Said set or share needs to be present in the ISO you copy the answer file to beforehand\n" +
                 "\t\t--computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
                 "\tTime zone settings:\n\n" +
                 "\t\t--tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
                 "\tDisk configuration settings:\n\n" +
-                "\t\t--partmode\t\tSets the partitioning mode. Possible values: interactive (ask during system setup); unattended (configure settings of Disk 0); custom (use a DiskPart script). Defaults to interactive if not set\n\n" +
+                "\t\t--partmode\t\tSets the partitioning mode. Possible values: interactive (ask during system setup); unattended (configure settings of Disk 0). Defaults to interactive if not set\n\n" +
                 "\tEdition settings: (USE ONE SWITCH BUT NOT ALL)\n\n" +
                 "\t\t--firmware\t\tConfigures the target system to use the product key embedded in the firmware (note, this requires a modern system)\n" +
                 "\t\t--generic\t\tSets generic edition settings using a configuration file. Defaults to Pro edition if not set\n" +
@@ -274,7 +274,7 @@ namespace UnattendGen
                     else if (cmdLine.StartsWith("--BypassNRO", StringComparison.OrdinalIgnoreCase))
                     {
                         DebugWrite("BypassNRO: True", (debugMode | Debugger.IsAttached));
-                        Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11. Do note that this setting may not work for you on Windows 11 24H2.");
+                        Console.WriteLine($"INFO: BypassNRO setting will be configured. You will be able to use the target file only on Windows 11.");
                         generator.SV_BypassNRO = true;
                     }
                     else if (cmdLine.StartsWith("--ConfigSet", StringComparison.OrdinalIgnoreCase))
@@ -322,32 +322,6 @@ namespace UnattendGen
                                         DiskZeroSettings? diskZero = DiskZeroSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unattPartSettings.xml"));
                                         generator.diskZeroSettings = diskZero;
                                         DebugWrite($"Disk 0 settings:\n\n\t- Partition Style: {diskZero.partStyle.ToString()}\n\t- Install Recovery Environment? {(diskZero.recoveryEnvironment != DiskZeroSettings.RecoveryEnvironmentMode.None ? $"Yes\n\t\t- Location: {diskZero.recoveryEnvironment.ToString()}\n\t{(diskZero.partStyle == DiskZeroSettings.PartitionStyle.GPT ? $"- EFI System Partition Size: {diskZero.ESPSize} MB\n\t" : "")}" : "No")}- Recovery Partition Size: {diskZero.recEnvSize} MB\n", (debugMode | Debugger.IsAttached));
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine("WARNING: Could not parse partition settings file. Continuing with Interactive...");
-                                        if (Debugger.IsAttached)
-                                            Debugger.Break();
-                                        DebugWrite($"Error Message - {ex.Message}", (debugMode | Debugger.IsAttached));
-                                        partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("WARNING: Partition settings file does not exist. Continuing with Interactive...");
-                                    partition = AnswerFileGenerator.PartitionSettingsMode.Interactive;
-                                }
-                                break;
-                            case "custom":
-                                Console.WriteLine("INFO: Selected partition mode is custom (use DiskPart script). Reading settings...");
-                                partition = AnswerFileGenerator.PartitionSettingsMode.Custom;
-                                if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DiskPartSettings.xml")))
-                                {
-                                    try
-                                    {
-                                        DiskPartSettings? diskPart = DiskPartSettings.LoadDiskSettings(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DiskPartSettings.xml"));
-                                        generator.diskPartSettings = diskPart;
-                                        DebugWrite($"DiskPart settings:\n\n\t- Script file: \"{diskPart.scriptFile}\". Contents:\n\n\t\t{File.ReadAllText(diskPart.scriptFile).Replace("\n", "\n\t\t").Trim()}\n\n\t- Automatic configuration? {(diskPart.automaticInstall ? "Yes" : $"No\n\t\t- Disk: {diskPart.diskNum}\n\t\t- Partition: {diskPart.partNum}")}\n", (debugMode | Debugger.IsAttached));
                                     }
                                     catch (Exception ex)
                                     {
@@ -413,7 +387,7 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("--msa", StringComparison.OrdinalIgnoreCase))
                     {
-                        DebugWrite("The system will ask you for a Microsoft account. 24H2 does not present ways to bypass this with bypassnro, unless you join a domain", (debugMode | Debugger.IsAttached));
+                        DebugWrite("The system will ask you for a Microsoft account.", (debugMode | Debugger.IsAttached));
                         generator.msaInteractive = true;
                     }
                     else if (cmdLine.StartsWith("--customusers", StringComparison.OrdinalIgnoreCase))
@@ -937,7 +911,6 @@ namespace UnattendGen
                     ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture> architectures = ImmutableHashSet<Schneegans.Unattend.ProcessorArchitecture>.Empty;
                     architectures = architectures.Union(processorArchitectures);
 
-                    //var componentDictionary = ImmutableDictionary.Create<string, ImmutableSortedSet<Pass>>();
                     var componentDictionary = ImmutableDictionary.Create<ComponentAndPass, string>();
 
                     foreach (SystemComponent component in SystemComponents)
@@ -1017,35 +990,23 @@ namespace UnattendGen
                                     _ => new NoneAutoLogonSettings()
                                 },
                                 obscurePasswords: Base64Obscure),
-                            PartitionSettings = partitionSettings switch
+                            PESettings = partitionSettings switch
                             {
-                                PartitionSettingsMode.Interactive => new InteractivePartitionSettings(),
-                                PartitionSettingsMode.Unattended => new UnattendedPartitionSettings(
-                                    PartitionLayout: diskZeroSettings.partStyle switch
+                                PartitionSettingsMode.Interactive => new DefaultPESettings(SV_LabConfig),
+                                PartitionSettingsMode.Unattended => new GeneratePESettings(new UnattendedPartitionSettings(0, 
+                                    diskZeroSettings.partStyle switch
                                     {
                                         DiskZeroSettings.PartitionStyle.GPT => PartitionLayout.GPT,
                                         DiskZeroSettings.PartitionStyle.MBR => PartitionLayout.MBR,
                                         _ => PartitionLayout.GPT
-                                    },
-                                    RecoveryMode: diskZeroSettings.recoveryEnvironment switch
+                                    }, diskZeroSettings.recoveryEnvironment switch
                                     {
                                         DiskZeroSettings.RecoveryEnvironmentMode.None => RecoveryMode.None,
                                         DiskZeroSettings.RecoveryEnvironmentMode.Partition => RecoveryMode.Partition,
-                                        DiskZeroSettings.RecoveryEnvironmentMode.Windows => RecoveryMode.Folder,
                                         _ => RecoveryMode.Partition
-                                    },
-                                    EspSize: diskZeroSettings.ESPSize,
-                                    RecoverySize: diskZeroSettings.recEnvSize),
-                                PartitionSettingsMode.Custom => new CustomPartitionSettings(
-                                    Script: File.ReadAllText(diskPartSettings.scriptFile),
-                                    InstallTo: diskPartSettings.automaticInstall switch
-                                    {
-                                        true => new AvailableInstallToSettings(),
-                                        false => new CustomInstallToSettings(
-                                            installToDisk: diskPartSettings.diskNum,
-                                            installToPartition: diskPartSettings.partNum)
-                                    }),
-                                _ => new InteractivePartitionSettings()
+                                    }), 
+                                    new GeneratedDiskAssertionsSettings(), new AutomaticInstallFromSettings(), false, false, true, true, false, false),
+                                _ => new DefaultPESettings(SV_LabConfig)
                             },
                             EditionSettings = editionGenericChosen ? new UnattendedEditionSettings(
                                 Edition: new WindowsEdition(
@@ -1097,7 +1058,6 @@ namespace UnattendGen
                                 },
                                 RestartExplorer: RestartExplorer
                             ),
-                            BypassRequirementsCheck = SV_LabConfig,
                             BypassNetworkCheck = SV_BypassNRO,
                             VBoxGuestAdditions = (virtualMachine == VirtualMachineSolution.VBox_GAs),
                             VMwareTools = (virtualMachine == VirtualMachineSolution.VMware_Tools),

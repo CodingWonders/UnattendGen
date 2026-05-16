@@ -25,7 +25,7 @@ UnattendGen is compatible with the following operating systems:
 When running the program with the `/?` argument, you will see the following usage pattern:
 
 ```
-UnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }[,...]] [--LabConfig] [--BypassNRO] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended | custom }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--restartexplorer] [--customcomponents]
+UnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 }[,...]] [--LabConfig] [--BypassNRO] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--restartexplorer] [--customcomponents]
 ```
 
 When running the program with no arguments, it will generate a basic answer file with default settings. If you want to avoid this behavior and create your custom answer file, you will need to pass the appropriate switches.
@@ -63,7 +63,7 @@ When running the program with no arguments, it will generate a basic answer file
 
 | Switch | Action |
 |:--:|:--|
-| `--partmode` | Sets the disk configuration mode. You can choose either of the following options: `interactive` (Setup will ask you), `unattended` (configures options for Disk 0 based on a configuration file); or `custom` (configures options for disks and partitions using a DiskPart configuration file). If this switch is not passed, UnattendGen will use interactive settings |
+| `--partmode` | Sets the disk configuration mode. You can choose either of the following options: `interactive` (Setup will ask you), `unattended` (configures options for Disk 0 based on a configuration file). If this switch is not passed, UnattendGen will use interactive settings |
 
 **Edition settings**
 

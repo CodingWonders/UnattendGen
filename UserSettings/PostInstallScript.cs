@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
-using System.IO;
 
 namespace UnattendGen.UserSettings
 {
@@ -147,6 +148,16 @@ namespace UnattendGen.UserSettings
                                             ".js" or ".jse" => ScriptExtension.JScript,
                                             _ => ScriptExtension.Unknown
                                         };
+
+                                        if (Path.GetExtension(scriptPath).Equals(".nt", StringComparison.InvariantCultureIgnoreCase))
+                                        {
+                                            Console.BackgroundColor = ConsoleColor.DarkYellow;
+                                            Console.ForegroundColor = ConsoleColor.Black;
+                                            Console.WriteLine("A Batch script with a NT extension has been detected. Support for Batch scripts with NT extensions will");
+                                            Console.WriteLine("be removed in a future UnattendGen release. Save your NT scripts with BAT or CMD extensions.");
+                                            Console.ResetColor();
+                                            Console.WriteLine();
+                                        }
 
                                         if (extension == ScriptExtension.Unknown)
                                         {
