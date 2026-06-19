@@ -6,7 +6,7 @@ if [[ ! $? ]]; then
 	exit 1
 fi
 
-framework="net9.0"
+framework="net10.0"
 
 if [[ -d "./bin/Release/$framework" ]]; then
 	rm -rf "./bin/Release/$framework"
