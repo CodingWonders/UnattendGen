@@ -665,7 +665,7 @@ namespace UnattendGen
                                                 Console.WriteLine($"- Script Type: {script.Extension switch
                                                 {
                                                     PostInstallScript.ScriptExtension.PowerShell => "PowerShell (.PS1)",
-                                                    PostInstallScript.ScriptExtension.Batch => "Batch (.BAT, .CMD, .NT)",
+                                                    PostInstallScript.ScriptExtension.Batch => "Batch (.BAT, .CMD)",
                                                     PostInstallScript.ScriptExtension.Reg => "Windows Registry",
                                                     _ => "Unknown"
                                                 }}");
