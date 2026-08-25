@@ -51,6 +51,7 @@ for %%a in (%UNATTENDGEN_BUILD_TARGETS%) do (
 		call :nonwindowswarning %%a
 	)
 	if "%%a" == "osx-x64" (
+		call :goldengatewarning
 		if !UNATTENDGEN_ADD_OSX_X64_COMPAT! EQU 0 (
 			echo Platform %%a not supported by publish flags.
 			echo Set the UNATTENDGEN_ADD_OSX_X64_COMPAT option in this script to 1 to enable Intel builds of UnattendGen for macOS.
@@ -82,6 +83,7 @@ for %%a in (%UNATTENDGEN_BUILD_TARGETS%) do (
 		call :nonwindowswarning %%a
 	)
 	if "%%a" == "osx-x64" (
+		call :goldengatewarning
 		if !UNATTENDGEN_ADD_OSX_X64_COMPAT! EQU 0 (
 			echo Platform %%a not supported by publish flags.
 			echo Set the UNATTENDGEN_ADD_OSX_X64_COMPAT option in this script to 1 to enable Intel builds of UnattendGen for macOS.
@@ -102,6 +104,13 @@ echo Zipping regular binaries...
 powershell -ExecutionPolicy Bypass ".\RegularZip.ps1"
 
 echo Completed.
+
+if exist "zipReleaseHash.ps1" (
+	echo Calculating release hashes...
+	cd bin\release\net10.0
+	powershell -ExecutionPolicy Bypass -NoProfile -NoLogo -File ..\..\..\zipReleaseHash.ps1
+)
+
 ENDLOCAL
 exit /b
 
@@ -109,3 +118,12 @@ exit /b
 for /f %%A in ('echo prompt $E ^| cmd') do set "ESC=%%A"
 echo %ESC%[30;43mTarget %1 is not a Windows platform. UNIX builds will be made, however, they WON'T be executable. The end-user will need%ESC%[0m
 echo %ESC%[30;43mto run "chmod +x ./UnattendGen" to mark program as executable.%ESC%[0m
+exit /b
+
+:goldengatewarning
+for /f %%A in ('echo prompt $E ^| cmd') do set "ESC=%%A"
+echo.
+echo %ESC%[30;43mTarget osx-x64 will stop being supported after either .NET drops support for macOS Tahoe,%ESC%[0m
+echo %ESC%[30;43mor Apple stops supporting macOS Tahoe. macOS Golden Gate (27.0) and later stop supporting%ESC%[0m
+echo %ESC%[30;43mIntel-based Macintosh hardware, and so will UnattendGen. Keep this in mind for the future.%ESC%[0m
+exit /b

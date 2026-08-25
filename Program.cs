@@ -992,7 +992,8 @@ namespace UnattendGen
                                 obscurePasswords: Base64Obscure),
                             PESettings = partitionSettings switch
                             {
-                                PartitionSettingsMode.Interactive => new DefaultPESettings(SV_LabConfig),
+                                PartitionSettingsMode.Interactive => new DefaultPESettings(editionGenericChosen ? new UnattendedEditionSettings(new WindowsEdition(genericEdition.Id, genericEdition.DisplayName, genericEdition.ProductKey, true))
+                                                                                                                : editionFirmwareChosen ? new FirmwareEditionSettings() : new CustomEditionSettings(new ProductKey(customKey)), SV_LabConfig),
                                 PartitionSettingsMode.Unattended => new GeneratePESettings(new UnattendedPartitionSettings(0, 
                                     diskZeroSettings.partStyle switch
                                     {
@@ -1005,16 +1006,10 @@ namespace UnattendGen
                                         DiskZeroSettings.RecoveryEnvironmentMode.Partition => RecoveryMode.Partition,
                                         _ => RecoveryMode.Partition
                                     }), 
-                                    new GeneratedDiskAssertionsSettings(), new AutomaticInstallFromSettings(), false, false, true, true, false, false),
-                                _ => new DefaultPESettings(SV_LabConfig)
+                                    new GeneratedDiskAssertionsSettings(), new InteractiveInstallFromSettings(), false, false, true, true, false, false),
+                                _ => new DefaultPESettings(editionGenericChosen ? new UnattendedEditionSettings(new WindowsEdition(genericEdition.Id, genericEdition.DisplayName, genericEdition.ProductKey, true))
+                                                                                : editionFirmwareChosen ? new FirmwareEditionSettings() : new CustomEditionSettings(new ProductKey(customKey)), SV_LabConfig)
                             },
-                            EditionSettings = editionGenericChosen ? new UnattendedEditionSettings(
-                                Edition: new WindowsEdition(
-                                    id: genericEdition.Id,
-                                    displayName: genericEdition.DisplayName,
-                                    productKey: genericEdition.ProductKey,
-                                    visible: true)) : editionFirmwareChosen ? new FirmwareEditionSettings() : new CustomEditionSettings(
-                                        productKey: customKey),
                             LockoutSettings = lockout.Enabled ? new CustomLockoutSettings(
                                 lockoutThreshold: lockout.FailedAttempts,
                                 lockoutWindow: lockout.TimeFrame,
