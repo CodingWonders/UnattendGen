@@ -994,7 +994,7 @@ namespace UnattendGen
                             {
                                 PartitionSettingsMode.Interactive => new DefaultPESettings(editionGenericChosen ? new UnattendedEditionSettings(new WindowsEdition(genericEdition.Id, genericEdition.DisplayName, genericEdition.ProductKey, true))
                                                                                                                 : editionFirmwareChosen ? new FirmwareEditionSettings() : new CustomEditionSettings(new ProductKey(customKey)), SV_LabConfig),
-                                PartitionSettingsMode.Unattended => new GeneratePESettings(new UnattendedPartitionSettings(0, 
+                                PartitionSettingsMode.Unattended => new GeneratePESettings(new UnattendedPartitionSettings(new FixedTargetDiskSettings(0), 
                                     diskZeroSettings.partStyle switch
                                     {
                                         DiskZeroSettings.PartitionStyle.GPT => PartitionLayout.GPT,
@@ -1006,7 +1006,7 @@ namespace UnattendGen
                                         DiskZeroSettings.RecoveryEnvironmentMode.Partition => RecoveryMode.Partition,
                                         _ => RecoveryMode.Partition
                                     }), 
-                                    new GeneratedDiskAssertionsSettings(), new InteractiveInstallFromSettings(), false, false, true, true, false, false),
+                                    new InteractiveInstallFromSettings(), new AutomaticPagingFileSettings(), false, false, true, true, false, false),
                                 _ => new DefaultPESettings(editionGenericChosen ? new UnattendedEditionSettings(new WindowsEdition(genericEdition.Id, genericEdition.DisplayName, genericEdition.ProductKey, true))
                                                                                 : editionFirmwareChosen ? new FirmwareEditionSettings() : new CustomEditionSettings(new ProductKey(customKey)), SV_LabConfig)
                             },
