@@ -64,10 +64,6 @@ namespace UnattendGen.UserSettings
             /// </summary>
             VBScript,
             /// <summary>
-            /// JScript file
-            /// </summary>
-            JScript,
-            /// <summary>
             /// Unknown script type
             /// </summary>
             Unknown,
@@ -145,9 +141,12 @@ namespace UnattendGen.UserSettings
                                             ".ps1" => ScriptExtension.PowerShell,
                                             ".reg" => ScriptExtension.Reg,
                                             ".vbs" or ".vbe" or ".wsf" or ".wsc" => ScriptExtension.VBScript,
-                                            ".js" or ".jse" => ScriptExtension.JScript,
                                             _ => ScriptExtension.Unknown
                                         };
+
+                                        if (new[] { ".js", ".jse" }.Contains(Path.GetExtension(scriptPath).ToLowerInvariant())) {
+                                            Console.WriteLine($"JScript files are no longer supported.");
+                                        }
 
                                         if (extension == ScriptExtension.Unknown)
                                         {

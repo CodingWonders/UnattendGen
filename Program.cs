@@ -958,12 +958,22 @@ namespace UnattendGen
                                         PostInstallScript.ScriptExtension.Batch => ScriptType.Cmd,
                                         PostInstallScript.ScriptExtension.Reg => ScriptType.Reg,
                                         PostInstallScript.ScriptExtension.VBScript => ScriptType.Vbs,
-                                        PostInstallScript.ScriptExtension.JScript => ScriptType.Js,
                                         _ => ScriptType.Ps1
                                     }));
                         }
 
-                        scripts = scriptList.ToArray();
+                        scripts = [.. scriptList];
+                    }
+
+                    IComputerNameSettings finalComputerName = null;
+                    if (randomComputerName) {
+                        finalComputerName = new RandomComputerNameSettings();
+                    } else {
+                        if (computerName.StartsWith("script:", StringComparison.OrdinalIgnoreCase)) {
+                            finalComputerName = new ScriptComputerNameSettings(computerName.Replace("script:", ""));
+                        } else {
+                            finalComputerName = new CustomComputerNameSettings(computerName);
+                        }
                     }
 
                     UnattendGenerator generator = new();
@@ -1016,15 +1026,8 @@ namespace UnattendGen
                                 lockoutDuration: lockout.AutoUnlock) : new DisableLockoutSettings(),
                             PasswordExpirationSettings = (ExpirationDays == 0 ? new UnlimitedPasswordExpirationSettings() : new CustomPasswordExpirationSettings(
                                 maxAge: ExpirationDays)),
-                            ComputerNameSettings = randomComputerName ? 
-                            new RandomComputerNameSettings() : 
-                            (computerName.StartsWith("script:", StringComparison.OrdinalIgnoreCase)) ? 
-                            new ScriptComputerNameSettings(
-                                Script: computerName.Replace("script:", "")) :
-                            new CustomComputerNameSettings(
-                                ComputerName: computerName),
-                            TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(
-                                TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
+                            ComputerNameSettings = finalComputerName,
+                            TimeZoneSettings = timeZoneImplicit ? new ImplicitTimeZoneSettings() : new ExplicitTimeZoneSettings(TimeZone: new TimeOffset(regionalSettings.regionTimes[0].Id, regionalSettings.regionTimes[0].DisplayName)),
                             WifiSettings = WirelessInteractive ? new InteractiveWifiSettings() : WirelessSkip ? new SkipWifiSettings() : new ParameterizedWifiSettings(
                                 Name: WirelessSettings.SSID,
                                 Password: WirelessSettings.Password,
