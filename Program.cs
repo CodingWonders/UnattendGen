@@ -56,7 +56,7 @@ namespace UnattendGen
         {
             Console.WriteLine("=== PROGRAM HELP ===\n");
             Console.WriteLine("USAGE\n\n" +
-                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--ConfigSet] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
+                "\tUnattendGen [--target=<targetPath>] [--regionfile=<regionFile>] [--architecture={ x86 ; i386 | x64 ; amd64 | aarch64 ; arm64 },[...]] [--LabConfig] [--BypassNRO] [--computername=<compName>] [--tzImplicit] [--partmode={ interactive | unattended }] [--firmware | --generic | --customkey=<key>] [--msa] [--customusers] [--autologon={ firstadmin | builtinadmin }] [--b64obscure] [--pwExpire=<days>] [--lockout={ yes | no } [--vm={ vbox_gas | vmware | virtio | parallels }] [--wifi={ yes | no }] [--telem={ yes | no }] [--customscripts] [--hidewindows] [--restartexplorer] [--customcomponents]\n");
             Console.WriteLine("SWITCHES\n\n" +
                 "\tGeneral switches:\n\n" +
                 "\t\t--help         \t\tShows this help screen\n" +
@@ -67,7 +67,6 @@ namespace UnattendGen
                 "\t\t--architecture\t\tConfigures the system architecture of the target answer file. Possible values: x86, i386 (Desktop 32-Bit); x64, amd64 (Desktop 64-Bit); aarch64, arm64 (Windows on ARM). Defaults to amd64 if not set. You can configure multiple architectures by separating them with commas (,)\n" +
                 "\t\t--LabConfig\t\tBypasses system requirement checks (Windows 11 only)\n" +
                 "\t\t--BypassNRO\t\tBypasses mandatory network connection setup (Windows 11 only)\n" +
-                "\t\t--ConfigSet\t\tConfigures the target system to use a configuration set or distribution share. Said set or share needs to be present in the ISO you copy the answer file to beforehand\n" +
                 "\t\t--computername\t\tSets a computer name defined by <compName>. Defaults to a random computer name if not set\n\n" +
                 "\tTime zone settings:\n\n" +
                 "\t\t--tzImplicit\t\tSets the system time zone to be determined from regional settings. Defaults to time zone settings from the regional settings file if not set\n\n" +
@@ -279,8 +278,7 @@ namespace UnattendGen
                     }
                     else if (cmdLine.StartsWith("--ConfigSet", StringComparison.OrdinalIgnoreCase))
                     {
-                        DebugWrite("Windows SIM Configuration Set: True", (debugMode | Debugger.IsAttached));
-                        generator.UseConfigSet = true;
+                        Console.WriteLine("WARNING: The configuration set parameter is no longer used and the unattended answer file will be configured to use a configuration set by default.");
                     }
                     else if (cmdLine.StartsWith("--computername", StringComparison.OrdinalIgnoreCase))
                     {
@@ -813,69 +811,36 @@ namespace UnattendGen
         }
 
         public bool regionalInteractive;
-
         public RegionFile regionalSettings = new RegionFile();
-
         public bool randomComputerName;
-
         public string computerName = "";
-
         public List<Schneegans.Unattend.ProcessorArchitecture> processorArchitectures = [];
-
         public bool SV_LabConfig;
-
         public bool SV_BypassNRO;
-
-        public bool UseConfigSet;
-
         public bool timeZoneImplicit;
-
         public PartitionSettingsMode partitionSettings;
-
         public DiskZeroSettings? diskZeroSettings;
-
         public DiskPartSettings? diskPartSettings;
-
         public bool editionFirmwareChosen;
-
         public bool editionGenericChosen;
-
         public SystemEdition? genericEdition;
-
         public string? customKey;
-
         public bool accountsInteractive;
-
         public bool msaInteractive;
-
         public List<UserAccount>? accounts;
-
         public AutoLogon? autoLogonSettings;
-
         public bool Base64Obscure;
-
         public int ExpirationDays = 0;
-
         public AccountLockout? lockout;
-
         public VirtualMachineSolution virtualMachine;
-
         public bool WirelessInteractive;
-
         public bool WirelessSkip;
-
         public WirelessNetwork? WirelessSettings;
-
         public SystemTelemetry Telemetry;
-
         public List<PostInstallScript>? PostInstallScripts = new List<PostInstallScript>();
-
         public bool HideScriptWindows;
-
         public bool RestartExplorer;
-
         public List<SystemComponent>? SystemComponents = new List<SystemComponent>();
-
         public bool noSensitiveFiles;
 
         public async Task GenerateAnswerFile(string targetPath)
@@ -1061,7 +1026,6 @@ namespace UnattendGen
                             VMwareTools = (virtualMachine == VirtualMachineSolution.VMware_Tools),
                             VirtIoGuestTools = (virtualMachine == VirtualMachineSolution.VirtIO),
                             ParallelsTools = (virtualMachine == VirtualMachineSolution.Parallels),
-                            UseConfigurationSet = UseConfigSet,
                             HidePowerShellWindows = HideScriptWindows,
                             DeleteWindowsOld = true,
                             KeepSensitiveFiles = !noSensitiveFiles
